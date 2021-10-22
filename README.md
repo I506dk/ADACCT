@@ -56,6 +56,7 @@ pip install pandas
 - [x] Check hashes against HIBP
 - [x] Allow for emailing of results
 - [ ] Find a way to protect saved API key and Email credentials (Currently saved as plain text)
+- [ ] Add option to specify location of Hash File (Defaults to the same directory the script is in)
 - [ ] Add support for new Active Directory Checks
 
 
