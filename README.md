@@ -16,6 +16,7 @@
 
 ## Dependencies
 - [Psutil](https://pypi.org/project/psutil/) - Cross-platform library for process and system monitoring
+- [Requests](https://pypi.org/project/requests/) - HTTP Library
 - [Pandas](https://pypi.org/project/pandas/) - A Powerful data analysis toolkit
 
 ## Notes
@@ -54,6 +55,7 @@ pip install pandas
 - [x] Pull all NTLM hashes
 - [x] Check hashes against HIBP
 - [x] Allow for emailing of results
+- [ ] Download HIBP Hash file
 - [ ] Find a way to protect saved API key and Email credentials (Currently saved as plain text)
 - [ ] Add option to specify location of Hash File (Defaults to the same directory the script is in)
 - [ ] Add better protection of python processes running in memory (Don't want hash leaks)
