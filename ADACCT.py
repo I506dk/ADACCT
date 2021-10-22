@@ -1064,9 +1064,9 @@ def main(args):
     
     # If no arguments are given, continue
     else:
-        # Run script as normal
+        # Run script as normal with all options
         run_normal()
-        pass
+        check_ntlm_hashes()
     return
 
 
