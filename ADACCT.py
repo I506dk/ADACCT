@@ -113,16 +113,8 @@ def run_as_admin(argv=None, debug=False):
     return
 
 
-# Function to pull all emails from active directory
-def get_emails(*args):
-    # Change fucntion based on automation
-    Auto_Bit = 0
-    if (len(args) > 0) and ("auto" in args):
-        Auto_Bit = 1 
-
-    # List of emails pulled from active directory
-    email_list = []
-   
+# Function to install active directory tools via powershell
+def install_tools():
     # Install active directory tools
     print("Installing Active Directory Tools. This may take a few minutes. Please wait...")
    
@@ -151,6 +143,21 @@ def get_emails(*args):
         powershell = subprocess.check_output(["powershell.exe", "Add-WindowsCapability -Name RSAT* -Online"])
 
     print("Done installing tools.")
+    return
+
+
+# Function to pull all emails from active directory
+def get_emails(*args):
+    # Change fucntion based on automation
+    Auto_Bit = 0
+    if (len(args) > 0) and ("auto" in args):
+        Auto_Bit = 1 
+
+    # List of emails pulled from active directory
+    email_list = []
+   
+    # Install AD Tools
+    install_tools()
 
     # Call powershell process and pull email accounts from all users
     powershell = subprocess.check_output(["powershell.exe", "Import-Module activedirectory"])
@@ -799,6 +806,9 @@ def run_automated():
 
 
 def check_ntlm_hashes():
+    # Install AD Tools
+    install_tools()
+
     # Call powershell to get current domain name
     # Strip all other characters to isolate the domain name as a string
     domain_name = subprocess.check_output(["powershell.exe", "Get-WmiObject -Namespace root\cimv2 -Class Win32_ComputerSystem | Select Domain | Format-List"]).decode("utf-8")
