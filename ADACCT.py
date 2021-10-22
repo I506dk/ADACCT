@@ -65,7 +65,6 @@ def acknowledgements(*args):
         HaveIBeenPwned to check if they have been compromised.
        
         Results can be emailed or printed to screen.""")
-    
     if Auto_Bit == 0:    
         # Prompt user for acknowledgement
         Initial_Prompt = input("\nPress enter if you want to continue. Otherwise enter q to quit. ")
@@ -463,8 +462,9 @@ def send_mail(to_address, message, *args):
         server.quit()
 
     return
-################################################
-# Run script as normal, with user interation
+
+
+# Function to run script as normal, with user interation
 def run_normal():
     # Get current admin state
     Admin_State = run_as_admin()
@@ -695,7 +695,7 @@ def run_normal():
     return
     
 
-# Run script automated
+# Function to run script automated (only the email portion)
 def run_automated():
     # Get current admin state
     Admin_State = run_as_admin()
@@ -993,7 +993,8 @@ def check_ntlm_hashes():
     # Probably export usernames as csv for future use
     return
 
-   
+
+# Function to print help screen
 def print_help():
     # Print help screen
     print("ADACCT is a command line tool to check user email addresses and NTLM hashes for compromise against HaveIBeenPwned's database.")
@@ -1061,7 +1062,6 @@ def main(args):
         else:
             print("Unknown arguement given.")
             print("Use -h or --help command for more help.")
-    
     # If no arguments are given, continue
     else:
         # Run script as normal with all options
