@@ -22,7 +22,6 @@
 ### HaveIBeenPwned
 - [Api Key](https://haveibeenpwned.com/API/Key) - HIBP uses a paid API key, needed for using their API
 - [Compromised Hash File](https://haveibeenpwned.com/Passwords) - Download the Compromised hash file (Decompressed it is about 21 gigabytes)
-### Usage
 - If results are to be emailed, the script needs an email address and credentials to send from (If using Gmail, less secure apps needs to be enabled)
 - Api key, email addresses, and email credentials can be saved to text file, instead of manually typed each time
 
