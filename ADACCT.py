@@ -1061,7 +1061,7 @@ def check_ntlm_hashes():
         print(str(len(Compromised_Users)) + " out of " + User_Count + " users have compromised passwords.")
         
         # Exit
-        input("Done. Press enter to exit...")
+        input("Done. Press enter to exit or continue...")
     
     elif Admin_State is None:
         print('Elevating privleges and moving to admin window.')
@@ -1153,7 +1153,7 @@ def main(args):
         if Admin_State is True:
             # Run script as normal with all options
             run_normal()
-            download_and_unzip()
+            #download_and_unzip()
             check_ntlm_hashes()
         elif Admin_State is None:
             print('Elevating privleges and moving to admin window.')
