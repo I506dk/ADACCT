@@ -22,9 +22,8 @@
 - [patool](https://pypi.org/project/patool/) - Library to allow pyunpack to unpack various types of archive files
 
 ## Notes
-### HaveIBeenPwned
-- [Api Key](https://haveibeenpwned.com/API/Key) - HIBP uses a paid API key, needed for using their API
-- [Compromised Hash File](https://haveibeenpwned.com/Passwords) - Download the Compromised hash file (Decompressed it is about 21 gigabytes)
+- [Api Key](https://haveibeenpwned.com/API/Key) - HaveIBeenPwned uses a paid API key, needed for using their API
+- [Compromised Hash File](https://haveibeenpwned.com/Passwords) - Compromised hash file (Decompressed it is about 21 gigabytes) (Can be manually downloaded if needed)
 - If results are to be emailed, the script needs an email address and credentials to send from (If using Gmail, less secure apps needs to be enabled)
 - Api key, email addresses, and email credentials can be saved to text file, instead of manually typed each time
 
@@ -52,6 +51,25 @@ pip install requests
 pip install pyunpack
 pip install patools
 ```
+
+## Usage
+To run ADACCT for the first time:
+```
+python ADACCT.py
+```
+This will check for compromised emails, download the HIBP hash database file, then check user password hashes against that database.
+
+Arguments can be specified to the script if only specific portions of the script are needed:
+
+(***-h or --help***) - will display the help screen.
+
+(***-d or --download***)  - will download and unzip the HIBP hash file.
+
+(***-e or --email***) - will check email addresses found in the current active directory for compromise.
+
+(***-n or --ntlm***) - will check NTLM hashes pulled from active directory against compromised hash list.
+
+(***-A***) - will run the script completely automated, without user interaction (Only applies to -e argument).
 
 ## To Do:
 
