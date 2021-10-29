@@ -42,7 +42,7 @@ python get-pip.py
 
 **Download from Github**
 
-Click the download as zip button at the top right or click [HERE](https://github.com/I506dk/ADACCT/archive/refs/heads/main.zip).
+Click the download as zip button at the top right or click [HERE](https://github.com/I506dk/ADACCT/archive/refs/heads/main.zip) to download the repository.
 
 Or instead of downloading the compressed source, you may instead want to clone the GitHub repository: 
 ```
