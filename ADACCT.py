@@ -18,6 +18,7 @@ from os import path
 def install_library(package):
     # Run pip as a subprocess
     subprocess.call(['pip', 'install', package])
+    return
 
 # Install missing packages
 while True:
@@ -25,16 +26,17 @@ while True:
         # Import packages here
         import psutil
         import requests
-        #pip install patool
         import pandas as pd
-        #pip install pyunpack
+        from pyunpack import Archive
         break
     except Exception as e:
         Missing_Library = str(e).strip('No module named ')
         Missing_Library = Missing_Library.strip("'")
         install_library(Missing_Library)
-   
-   
+
+# Install other dependencies that aren't imported (patool allows for unzipping of multiple file types)
+install_library("patool")
+  
 # Print important information to screen
 def acknowledgements(*args):
     # Change fucntion based on automation
@@ -1125,12 +1127,9 @@ def main(args):
                 # Run script as normal
                 run_normal()
         elif '-n' in args:
-            # Run ntlm check
-            print("hash")
             # Check NTLM hashes
             check_ntlm_hashes()
         elif "--ntlm" in args:
-            print("big hash")
             # Check NTLM hashes
             check_ntlm_hashes()
         else:
