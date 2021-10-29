@@ -34,7 +34,6 @@ while True:
         Missing_Library = Missing_Library.strip("'")
         install_library(Missing_Library)
 
-
 # Print important information to screen
 def acknowledgements(*args):
     # Change fucntion based on automation
