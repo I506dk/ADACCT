@@ -34,9 +34,7 @@ while True:
         Missing_Library = Missing_Library.strip("'")
         install_library(Missing_Library)
 
-# Install other dependencies that aren't imported (patool allows for unzipping of multiple file types)
-install_library("patool")
-  
+
 # Print important information to screen
 def acknowledgements(*args):
     # Change fucntion based on automation
@@ -45,10 +43,11 @@ def acknowledgements(*args):
         Auto_Bit = 1      
 
     print("""
-        This script makes two assumptions...\n
+        This script makes a couple assumptions...\n
         1.) Pip is installed.
-        2.) You have administrator credentials for this machine and
-            for the Domain Controller.
+        2.) You have administrator credentials for this machine and for the Domain Controller.
+        3.) You have an api key for HaveIBeenPwned.
+        4.) You have sender email credentials (Asumming you chose to email results).
        
         Current versions of python automatically install pip,
         however you can also install it using the following commands:
@@ -58,7 +57,10 @@ def acknowledgements(*args):
         To install pip: python get-pip.py
        
         Any dependencies will automatically be installed via pip
-        if they are not present. This is purely for ease of use.
+        if they are not present. This is purely for ease of use,
+        however, they can also be installed manually:
+        
+        pip install -r requirements.txt
        
         The script will auto escalate, but will give you a UAC
         prompt to allow for admin access. It will then run an admin
@@ -69,9 +71,14 @@ def acknowledgements(*args):
         If so, it will pull all user emails, and sumbit them to
         HaveIBeenPwned to check if they have been compromised.
         Then it will replicate the NTLM hash database, and check
-        those locally against HaveIBeenPwned's NTLM hash file.
-       
-        Results can be emailed or printed to screen.""")
+        those locally against HaveIBeenPwned's NTLM hash file,
+        and return compromised emails and usernames.
+        
+        Results can be emailed or printed to screen.
+        
+        (Hashes do not exist outside of memory for protection purposes,
+        so only the username will be returned if that user's password hash
+        is identified as compromised.)""")
     if Auto_Bit == 0:    
         # Prompt user for acknowledgement
         Initial_Prompt = input("\nPress enter if you want to continue. Otherwise enter q to quit. ")
@@ -814,6 +821,9 @@ def run_automated():
     
 # Function to download a file from a given url
 def download_and_unzip():
+    # Install other dependencies that aren't imported (patool allows for unzipping of multiple file types)
+    install_library("patool")
+
     # Url to HIBP hash file
     HIBP_Hashes = "https://downloads.pwnedpasswords.com/passwords/pwned-passwords-ntlm-ordered-by-hash-v7.7z"
 
@@ -1137,10 +1147,19 @@ def main(args):
             print("Use -h or --help command for more help.")
     # If no arguments are given, continue as if script has never been run
     else:
-        # Run script as normal with all options
-        run_normal()
-        download_and_unzip()
-        check_ntlm_hashes()
+        # Get current admin state
+        Admin_State = run_as_admin()
+
+        if Admin_State is True:
+            # Run script as normal with all options
+            run_normal()
+            download_and_unzip()
+            check_ntlm_hashes()
+        elif Admin_State is None:
+            print('Elevating privleges and moving to admin window.')
+        else:
+            print('Error: cannot elevate privileges.')
+            
     return
 
 
