@@ -63,13 +63,25 @@ Arguments can be specified to the script if only specific portions of the script
 
 (***-h or --help***) - will display the help screen.
 
+Examples: ```python ADACCT.py -h``` or ```python ADACCT.py --help```
+
 (***-d or --download***)  - will download and unzip the HIBP hash file.
+
+Examples: ```python ADACCT.py -d``` or ```python ADACCT.py --download```
 
 (***-e or --email***) - will check email addresses found in the current active directory for compromise.
 
+Examples: ```python ADACCT.py -e``` or ```python ADACCT.py --email```
+
 (***-n or --ntlm***) - will check NTLM hashes pulled from active directory against compromised hash list.
 
+Examples: ```python ADACCT.py -n``` or ```python ADACCT.py --ntlm```
+
 (***-A***) - will run the script completely automated, without user interaction (Only applies to -e argument).
+
+Examples: ```python ADACCT.py -e -A``` or ```python ADACCT.py --email -A```
+
+REMINDER - You can use multiple arguments as long as they aren't -h or --help (Those will default to showing the help screen then exiting)
 
 ## To Do:
 
