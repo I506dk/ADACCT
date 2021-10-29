@@ -2,7 +2,7 @@
 
 ![AD_Logo](https://user-images.githubusercontent.com/33561466/138386605-36291c2a-c68f-4390-84a7-5567d8b624e1.png)
 
-#### A Python script to check Acitve Directory User emails and NTLM password hashes for compromise against HaveIBeenPwned
+#### A Python script to check Acitve Directory User emails and NTLM password hashes for compromise against HaveIBeenPwned's database
 #### Prounounced /ˈadikt/ - an enthusiastic devotee of a specified thing or activity.
 
 ## Features
@@ -18,6 +18,8 @@
 - [Psutil](https://pypi.org/project/psutil/) - Cross-platform library for process and system monitoring
 - [Requests](https://pypi.org/project/requests/) - HTTP Library
 - [Pandas](https://pypi.org/project/pandas/) - A Powerful data analysis toolkit
+- [pyunpack](https://pypi.org/project/pyunpack/) - Library to unpack archive files
+- [patool](https://pypi.org/project/patool/) - Library to allow pyunpack to unpack various types of archive files
 
 ## Notes
 ### HaveIBeenPwned
@@ -46,6 +48,9 @@ pip install -r requirements.txt
 ```
 pip install psutil
 pip install pandas
+pip install requests
+pip install pyunpack
+pip install patools
 ```
 
 ## To Do:
@@ -55,7 +60,7 @@ pip install pandas
 - [x] Pull all NTLM hashes
 - [x] Check hashes against HIBP
 - [x] Allow for emailing of results
-- [ ] Download HIBP Hash file
+- [x] Download HIBP Hash file
 - [ ] Find a way to protect saved API key and Email credentials (Currently saved as plain text)
 - [ ] Add option to specify location of Hash File (Defaults to the same directory the script is in)
 - [ ] Add better protection of python processes running in memory (Don't want hash leaks)
