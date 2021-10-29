@@ -77,7 +77,7 @@ Examples: ```python ADACCT.py -e``` or ```python ADACCT.py --email```
 
 Examples: ```python ADACCT.py -n``` or ```python ADACCT.py --ntlm```
 
-(***-A***) - will run the script completely automated, without user interaction (Only applies to -e argument).
+(***-A***) - will run the script completely automated, without user interaction (Only applies to email argument).
 
 Examples: ```python ADACCT.py -e -A``` or ```python ADACCT.py --email -A```
 
