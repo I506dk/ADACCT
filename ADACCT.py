@@ -25,7 +25,9 @@ while True:
         # Import packages here
         import psutil
         import requests
+        #pip install patool
         import pandas as pd
+        #pip install pyunpack
         break
     except Exception as e:
         Missing_Library = str(e).strip('No module named ')
@@ -43,7 +45,8 @@ def acknowledgements(*args):
     print("""
         This script makes two assumptions...\n
         1.) Pip is installed.
-        2.) You have administrator credentials.
+        2.) You have administrator credentials for this machine and
+            for the Domain Controller.
        
         Current versions of python automatically install pip,
         however you can also install it using the following commands:
@@ -56,8 +59,8 @@ def acknowledgements(*args):
         if they are not present. This is purely for ease of use.
        
         The script will auto escalate, but will give you a UAC
-        prompt for admin access. It will then run an admin instance
-        of itself for the rest of the duration.
+        prompt to allow for admin access. It will then run an admin
+        instance of itself for the rest of the duration.
        
         Beyond that, the script will check to see if the current
         machine is connected to an active directory instance.
@@ -805,6 +808,50 @@ def run_automated():
         print('Error: cannot elevate privileges.')
     
     return
+    
+    
+# Function to download a file from a given url
+def download_and_unzip():
+    # Url to HIBP hash file
+    HIBP_Hashes = "https://downloads.pwnedpasswords.com/passwords/pwned-passwords-ntlm-ordered-by-hash-v7.7z"
+
+    # Get current directory
+    Current_Directory = os.getcwd() + '\\'
+
+    # Split url at the last slash, and get whatever is after (the complete filename)
+    File_Name = HIBP_Hashes.rsplit('/', 1)[1]
+
+    # Full path to file save directory
+    Full_Path = Current_Directory + File_Name
+
+    print("Starting file download...")
+    print("**WARNING** - This will take a significant amount of time to download...")
+    # Get file url and download in sections
+    # Also filter out anything that isn't actual data (ie. keep alive requests)
+    r = requests.get(HIBP_Hashes, stream=True)
+    with open(Full_Path, 'wb') as file:
+        for chunk in r.iter_content(chunk_size=1024):
+            if chunk:
+                file.write(chunk)
+    # Close file
+    file.close()
+    print("File downloaded.")
+    
+    # Unzip file in the current directory
+    print("Starting file unzip...")
+    print("**WARNING** - This will take a significant amount of time to unzip...")
+    Archive(File_Name).extractall(Current_Directory)
+    print("File unzipped.")
+    # Delete archive file once it has been unzipped
+    print("Cleaning up...")
+    if os.path.exists(Full_Path):
+        os.remove(File_Name)
+    else:
+        # Silently pass if there is no file to delete (Shouldn't ever be the case)
+        pass
+    print("Done.")
+    
+    return
 
 
 def check_ntlm_hashes():
@@ -878,7 +925,7 @@ def check_ntlm_hashes():
 
         # Get current working directory
         Current_Directory = os.getcwd()
-        # Default text file for compromised hashes
+        # Default text file for compromised hashes (Find a way in the future to not card code this)
         Hash_File = "pwned-passwords-ntlm-ordered-by-hash-v7.txt"
         # Full path to email file
         Full_Path = str(Current_Directory) + "\\" + str(Hash_File)
@@ -887,6 +934,7 @@ def check_ntlm_hashes():
         Hash_Existence = path.exists(Full_Path)
         if Hash_Existence == False:
             print("Cannot find Compromised NTLM Hash File.")
+            print("File can be downloaded using the -d or --download arguments.")
             # Exit
             input("Done. Press enter to exit...")
             quit()
@@ -1019,6 +1067,7 @@ def print_help():
     
     print("\n  Arguments: ")
     print(" -h, --help for help. (This screen)")
+    print(" -d, --download Downloads and unzips the HIBP hash file to the current directory.")
     print(" -e, --email Checks emails addresses found in the current active directory for compromise.")
     print(" -n, --ntlm Checks NTLM hashes pulled from active directory against compromised hash list.")
     print(" -A for running this script in the background, completely automated (Only applies to -e argument).")
@@ -1048,6 +1097,13 @@ def main(args):
         elif "--help" in args:
             # Print help screen
             print_help()
+        elif '-d' in args:
+            # Download and unzip HIBP file
+            # HIBP hash file, ordered by hash
+            download_and_unzip()
+        elif "--download" in args:
+            # Download and unzip HIBP file
+            download_and_unzip()
         elif '-e' in args:
             if '-A' in args:
                 # Run script without user input
@@ -1080,10 +1136,11 @@ def main(args):
         else:
             print("Unknown arguement given.")
             print("Use -h or --help command for more help.")
-    # If no arguments are given, continue
+    # If no arguments are given, continue as if script has never been run
     else:
         # Run script as normal with all options
         run_normal()
+        download_and_unzip()
         check_ntlm_hashes()
     return
 
