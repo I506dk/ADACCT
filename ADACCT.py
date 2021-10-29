@@ -47,7 +47,7 @@ def acknowledgements(*args):
         1.) Pip is installed.
         2.) You have administrator credentials for this machine and for the Domain Controller.
         3.) You have an api key for HaveIBeenPwned.
-        4.) You have sender email credentials (Asumming you chose to email results).
+        4.) You have sender email credentials (Assuming you chose to email results).
        
         Current versions of python automatically install pip,
         however you can also install it using the following commands:
