@@ -699,7 +699,7 @@ def run_normal():
                 # Other character entered.
                 print("Invalid response entered. Use y/Y for yes, and n/N for no.")
         # Exit
-        input("Done. Press enter to exit...")
+        input("Done. Press enter to exit or continue...")
                 
     elif Admin_State is None:
         print('Elevating privleges and moving to admin window.')
