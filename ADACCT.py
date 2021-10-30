@@ -136,6 +136,9 @@ def install_tools():
     if Admin_State is True:
         # Install active directory tools
         print("Installing Active Directory Tools. This may take a few minutes. Please wait...")
+        
+        # Install NuGet package provider
+        NuGet = subprocess.check_output(["powershell.exe", "Install-PackageProvider -Name 'NuGet' -Force"])
        
         # Check to see if OS is a server version of windows or not
         os_check = subprocess.check_output(["powershell.exe", "$osInfo = Get-CimInstance -ClassName Win32_OperatingSystem; $osInfo.ProductType"])
