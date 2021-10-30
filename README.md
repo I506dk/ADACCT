@@ -18,8 +18,8 @@
 - [Psutil](https://pypi.org/project/psutil/) - Cross-platform library for process and system monitoring
 - [Requests](https://pypi.org/project/requests/) - HTTP Library
 - [Pandas](https://pypi.org/project/pandas/) - A Powerful data analysis toolkit
-- [pyunpack](https://pypi.org/project/pyunpack/) - Library to unpack archive files
-- [patool](https://pypi.org/project/patool/) - Library to allow pyunpack to unpack various types of archive files
+- [shutil](https://docs.python.org/3/library/shutil.html) - File operations library
+- [py7zr](https://pypi.org/project/py7zr/) - 7z library for python
 
 ## Notes
 - [Api Key](https://haveibeenpwned.com/API/Key) - HaveIBeenPwned uses a paid API key, needed for using their API
@@ -30,9 +30,9 @@
 ## Installation
 **Download the latest release of python below:**
 
-[![Python](https://www.python.org/static/community_logos/python-powered-w-100x40.png)](https://www.python.org/downloads/)
+[![Python](https://www.python.org/static/community_logos/python-powered-w-100x40.png)](https://www.python.org/downloads/windows/)
 
-REMINDER - If using a Python version greater than 3.10.0, make sure Pandas supports it
+REMINDER - If using a Python version greater than 3.9.7, make sure Pandas and other libraries support it
 
 **Download and install Pip using the following commands:**
 ```
@@ -59,8 +59,8 @@ pip install -r requirements.txt
 pip install psutil
 pip install pandas
 pip install requests
-pip install pyunpack
-pip install patools
+pip install shutil
+pip install py7zr
 ```
 
 ## Usage
