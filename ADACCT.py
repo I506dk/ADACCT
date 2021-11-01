@@ -148,8 +148,12 @@ def install_tools():
         # If 1, this is a normal windows version
         if os_check == '1':
             # This works, but is slow. And probably installing other modules that aren't needed
-            powershell = subprocess.check_output(["powershell.exe", "Get-WindowsCapability -Name RSAT* -Online | select DisplayName"])
-            powershell = subprocess.check_output(["powershell.exe", "Add-WindowsCapability -Name RSAT* -Online"])
+            #powershell = subprocess.check_output(["powershell.exe", "Get-WindowsCapability -Name RSAT* -Online | Add-WindowsCapability -Online"])
+            # Install AD Tools, with specific version
+            powershell = subprocess.check_output(["powershell.exe", "Add-WindowsCapability -Online -Name 'Rsat.ActiveDirectory.DS-LDS.Tools~~~~0.0.1.0'"
+            # Install AD Tools, without version number
+            #powershell = subprocess.check_output(["powershell.exe", "Add-WindowsCapability -Online -Name 'Rsat.ActiveDirectory.DS-LDS.Tools'"
+            #powershell = subprocess.check_output(["powershell.exe", "Add-WindowsCapability -Name RSAT* -Online"])
             powershell = subprocess.check_output(["powershell.exe", "Install-Module -Name DSInternals -Force"])
 
         # If 2 or 3, we are on windows server
