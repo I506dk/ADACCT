@@ -952,6 +952,7 @@ def check_ntlm_hashes():
                         i += 1
                     
                     User_Frame = pd.DataFrame(hash_list)
+                    print("Hashes replicated. Checking against database...")
                     break
                 except subprocess.CalledProcessError as e:
                     print(e)
