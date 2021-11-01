@@ -891,218 +891,220 @@ def download_and_unzip():
 
 def check_ntlm_hashes():
     # Get current admin state
-    #Admin_State = run_as_admin()
+    Admin_State = run_as_admin()
     # (Local) Administrator privileges are needed for installing AD tools
-    #if Admin_State is True:
-    # Install AD Tools
-    install_tools()
-    time.sleep(20)
-    #elif Admin_State is None:
-    #    print('Elevating privleges and moving to admin window.')
-    #else:
-    #    print('Error: cannot elevate privileges.')
-        
+    if Admin_State is True:
+        # Install AD Tools
+        install_tools()
 
-    # Call powershell to get current domain name
-    # Strip all other characters to isolate the domain name as a string
-    domain_name = subprocess.check_output(["powershell.exe", "Get-WmiObject -Namespace root\cimv2 -Class Win32_ComputerSystem | Select Domain | Format-List"]).decode("utf-8")
-    domain_name = domain_name.replace('\n', '')
-    domain_name = domain_name.replace('\r', '')
-    domain_name = domain_name.replace("Domain :", '')
-    domain_name = domain_name.strip()
-    print("Current domain name: " + str(domain_name))
+        #elif Admin_State is None:
+        #    print('Elevating privleges and moving to admin window.')
+        #else:
+        #    print('Error: cannot elevate privileges.')
 
-    try:
-        # Get hostname of Domain Controller
-        hostname = subprocess.check_output(["powershell.exe", "Get-ADDomainController | select HostName"]).decode("utf-8")
-        hostname = str(hostname)
-        hostname = hostname.strip()
-        hostname = hostname.split('\n')
-        hostname = hostname[2]
-        hostname = hostname.replace(("." + domain_name), '')
+        # Call powershell to get current domain name
+        # Strip all other characters to isolate the domain name as a string
+        domain_name = subprocess.check_output(["powershell.exe", "Get-WmiObject -Namespace root\cimv2 -Class Win32_ComputerSystem | Select Domain | Format-List"]).decode("utf-8")
+        domain_name = domain_name.replace('\n', '')
+        domain_name = domain_name.replace('\r', '')
+        domain_name = domain_name.replace("Domain :", '')
+        domain_name = domain_name.strip()
+        print("Current domain name: " + str(domain_name))
 
-        # Check to see if a valid hostname was found
-        if "Cannot find DC" in hostname:
-            print("Cannot find domain controller.")
+        try:
+            # Get hostname of Domain Controller
+            hostname = subprocess.check_output(["powershell.exe", "Get-ADDomainController | select HostName"]).decode("utf-8")
+            hostname = str(hostname)
+            hostname = hostname.strip()
+            hostname = hostname.split('\n')
+            hostname = hostname[2]
+            hostname = hostname.replace(("." + domain_name), '')
+
+            # Check to see if a valid hostname was found
+            if "Cannot find DC" in hostname:
+                print("Cannot find domain controller.")
+                # Exit
+                input("Done. Press enter to exit...")
+                quit()
+            else:
+                print("Domain controller hostname: " + str(hostname))
+            
+            while True:
+                try:
+                    # Get admin DC credentials from user
+                    DC_Username = input("Please enter the administrator username for the domain controller: ")
+                    DC_Password = input("Please enter the administrator password for the domain controller: ")
+                    
+                    # Allow scripting for the current process
+                    powershell = subprocess.check_output(["powershell.exe", "Set-ExecutionPolicy Bypass -Scope Process -Force")]
+                    
+                    # Import DSInternals module
+                    powershell = subprocess.check_output(["powershell.exe", "Import-Module DSInternals"])
+                        
+                    # Get all NTLM hashes
+                    hash_list = subprocess.check_output(["powershell.exe", "$Username = '" + str(DC_Username) + "'; $Password = ConvertTo-SecureString -String '" + str(DC_Password) + "' -AsPlainText -Force; $Credentials = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $Username, $Password; Get-ADReplAccount -all -Server '" + str(hostname) + "' -Credential $Credentials | Format-Custom -View HashcatNT"])
+                    hash_list = hash_list.decode("utf-8")
+                    hash_list = hash_list.strip()
+                    hash_list = hash_list.replace('\r', '')
+                    hash_list = hash_list.split('\n')
+                    
+                    # Split NTLM hash data frame powershell and convert into dataframe
+                    i = 0
+                    while i < len(hash_list):
+                        hash_list[i] = hash_list[i].split(':')
+                        i += 1
+                    
+                    User_Frame = pd.DataFrame(hash_list)
+                    break
+                except subprocess.CalledProcessError as e:
+                    print(e)
+                    print("Error. Possible invalid credentials used.")
+            
+        except subprocess.CalledProcessError as e:
+            if domain_name == "WORKGROUP":
+                print("Default domain being used, possible that this machine isn't connected to an Active Directory.")
+                input("Done. Press enter to exit...")
+                quit()
+            else:
+                print("Unknown failure.")
+
+        # Pandas big data related stuff
+        # Get start time
+        Start_Time = time.time()
+
+        # Get current working directory
+        Current_Directory = os.getcwd()
+        # Default text file for compromised hashes (Find a way in the future to not card code this)
+        Hash_File = "pwned-passwords-ntlm-ordered-by-hash-v7.txt"
+        # Full path to email file
+        Full_Path = str(Current_Directory) + "\\" + str(Hash_File)
+
+        # Check if hash file exists
+        Hash_Existence = path.exists(Full_Path)
+        if Hash_Existence == False:
+            print("Cannot find Compromised NTLM Hash File.")
+            print("File can be downloaded using the -d or --download arguments.")
             # Exit
             input("Done. Press enter to exit...")
             quit()
         else:
-            print("Domain controller hostname: " + str(hostname))
-        
+            pass
+
+        # Get total number of users
+        User_Count = str(len(User_Frame))
+
+        # 613,584,246 lines in hash file
+        # 7 million hashes per gigabyte of ram used seems to be a safe amount
+        # Utilize 75% of system ram (Figure out how many hashes that allows for)
+        # Get machine memory and convert to gigabytes
+        Bytes = psutil.virtual_memory().total
+        Gigs = Bytes/1073741824
+
+        # Only allow 75% of memory to be used by python
+        Allowed_Usage = 0.75
+
+        # Get number of gigabytes allowed
+        Allowed_Gigs = Allowed_Usage * Gigs
+
+        # Determine number of hashes that can be read into dataframe at once
+        Split_Limit = round(Allowed_Gigs * 7000000)
+
+        # Offset starting point, so that old hashes aren't checked again
+        Start_Offset = 0
+
+        # Create final dataframe of users that have compromised passwords
+        Compromised_Users = pd.DataFrame()
+
+        # Compare each piece of the file against the user hashes
         while True:
-            try:
-                # Get admin DC credentials from user
-                DC_Username = input("Please enter the administrator username for the domain controller: ")
-                DC_Password = input("Please enter the administrator password for the domain controller: ")
-                
-                # Import DSInternals module
-                powershell = subprocess.check_output(["powershell.exe", "Import-Module DSInternals"])
+            if len(User_Frame) > 0:
+                print("Reading in portion of compromised hash file...")
+
+                # Create a dataframe of compromised hashes (This reads everything into memory...)
+                # With format Hash:Number
+                Hash_Frame = pd.read_csv(Full_Path, sep=':', skiprows=Start_Offset, nrows=Split_Limit, header=None, index_col=False)
+
+                if len(Hash_Frame) == Split_Limit:
+                    print("Checking against compromised hashes...")
+                    # Check to see if user hashes appear in compromised hashes
+                    # Returns a new dataframe containing True or False for each user
+                    Overlap = User_Frame[1].isin(Hash_Frame[0])
+
+                    # Make a list of compromised users by index
+                    Drop_Index = []
+
+                    # Return users with compromised passwords
+                    i = 0
+                    while i < len(Overlap):
+                        if Overlap[i] == True:
+                            # Print each row, column 0
+                            print("User " + str(User_Frame.iloc[i][0]) + "'s password has been identified as compromised.")
+                            Compromised_Users = Compromised_Users.append([User_Frame.iloc[i][0]])
+                            Drop_Index.append(i)
+                        i += 1
+
+                    # Drop those usernames from the dataframe
+                    User_Frame.drop(Drop_Index, inplace=True)
+
+                    # Reset index in dataframe
+                    User_Frame.reset_index(drop=True, inplace=True)
                     
-                # Get all NTLM hashes
-                hash_list = subprocess.check_output(["powershell.exe", "$Username = '" + str(DC_Username) + "'; $Password = ConvertTo-SecureString -String '" + str(DC_Password) + "' -AsPlainText -Force; $Credentials = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $Username, $Password; Get-ADReplAccount -all -Server '" + str(hostname) + "' -Credential $Credentials | Format-Custom -View HashcatNT"])
-                hash_list = hash_list.decode("utf-8")
-                hash_list = hash_list.strip()
-                hash_list = hash_list.replace('\r', '')
-                hash_list = hash_list.split('\n')
+                    # Start where we left off
+                    Start_Offset += Split_Limit
+                    
+                    # Delete dataframe to remove it from memory, and make room for new dataframe
+                    # This is in an effort to keep from using massive amounts of memory,
+                    # as python does not normally release memory back to the OS
+                    del Hash_Frame
+                    gc.collect()
+
+                    print("Portion done, continuing...")
+                        
+                # Run once more, then quit
+                else:
+                    print("Checking against compromised hashes...")
+                    # Check to see if user hashes appear in compromised hashes
+                    # Returns a new dataframe containing True or False for each user
+                    Overlap = User_Frame[1].isin(Hash_Frame[0])
+
+                    # Return users with compromised passwords
+                    i = 0
+                    while i < len(Overlap):
+                        if Overlap[i] == True:
+                            # Print each row, column 0
+                            print("User " + str(User_Frame.iloc[i][0]) + "'s password has been identified as compromised.")
+                            Compromised_Users = Compromised_Users.append([User_Frame.iloc[i][0]])
+                        i += 1
+                        
+                    # Delete dataframe to remove it from memory, and make room for new dataframe
+                    # This is in an effort to keep from using massive amounts of memory,
+                    # as python does not normally release memory back to the OS
+                    del Hash_Frame
+                    gc.collect()
                 
-                # Split NTLM hash data frame powershell and convert into dataframe
-                i = 0
-                while i < len(hash_list):
-                    hash_list[i] = hash_list[i].split(':')
-                    i += 1
-                
-                User_Frame = pd.DataFrame(hash_list)
+                    print("Portion done, continuing...")  
+                    break
+            else:
+                print("All user passwords have been compromised. Exiting...")
                 break
-            except subprocess.CalledProcessError as e:
-                print(e)
-                print("Error. Possible invalid credentials used.")
+
+        # Get time elapsed
+        End_Time = time.time()
+        Elapsed_Time = (End_Time - Start_Time)
+        Elapsed_Time = round(Elapsed_Time, 2)
+        print("\nTotal elapsed time taken to check hashes: " + str(Elapsed_Time) + " (seconds)")
+
+        # Print total number of compromises
+        print(str(len(Compromised_Users)) + " out of " + User_Count + " users have compromised passwords.")
         
-    except subprocess.CalledProcessError as e:
-        if domain_name == "WORKGROUP":
-            print("Default domain being used, possible that this machine isn't connected to an Active Directory.")
-            input("Done. Press enter to exit...")
-            quit()
-        else:
-            print("Unknown failure.")
-
-    # Pandas big data related stuff
-    # Get start time
-    Start_Time = time.time()
-
-    # Get current working directory
-    Current_Directory = os.getcwd()
-    # Default text file for compromised hashes (Find a way in the future to not card code this)
-    Hash_File = "pwned-passwords-ntlm-ordered-by-hash-v7.txt"
-    # Full path to email file
-    Full_Path = str(Current_Directory) + "\\" + str(Hash_File)
-
-    # Check if hash file exists
-    Hash_Existence = path.exists(Full_Path)
-    if Hash_Existence == False:
-        print("Cannot find Compromised NTLM Hash File.")
-        print("File can be downloaded using the -d or --download arguments.")
         # Exit
         input("Done. Press enter to exit...")
-        quit()
-    else:
-        pass
-
-    # Get total number of users
-    User_Count = str(len(User_Frame))
-
-    # 613,584,246 lines in hash file
-    # 7 million hashes per gigabyte of ram used seems to be a safe amount
-    # Utilize 75% of system ram (Figure out how many hashes that allows for)
-    # Get machine memory and convert to gigabytes
-    Bytes = psutil.virtual_memory().total
-    Gigs = Bytes/1073741824
-
-    # Only allow 75% of memory to be used by python
-    Allowed_Usage = 0.75
-
-    # Get number of gigabytes allowed
-    Allowed_Gigs = Allowed_Usage * Gigs
-
-    # Determine number of hashes that can be read into dataframe at once
-    Split_Limit = round(Allowed_Gigs * 7000000)
-
-    # Offset starting point, so that old hashes aren't checked again
-    Start_Offset = 0
-
-    # Create final dataframe of users that have compromised passwords
-    Compromised_Users = pd.DataFrame()
-
-    # Compare each piece of the file against the user hashes
-    while True:
-        if len(User_Frame) > 0:
-            print("Reading in portion of compromised hash file...")
-
-            # Create a dataframe of compromised hashes (This reads everything into memory...)
-            # With format Hash:Number
-            Hash_Frame = pd.read_csv(Full_Path, sep=':', skiprows=Start_Offset, nrows=Split_Limit, header=None, index_col=False)
-
-            if len(Hash_Frame) == Split_Limit:
-                print("Checking against compromised hashes...")
-                # Check to see if user hashes appear in compromised hashes
-                # Returns a new dataframe containing True or False for each user
-                Overlap = User_Frame[1].isin(Hash_Frame[0])
-
-                # Make a list of compromised users by index
-                Drop_Index = []
-
-                # Return users with compromised passwords
-                i = 0
-                while i < len(Overlap):
-                    if Overlap[i] == True:
-                        # Print each row, column 0
-                        print("User " + str(User_Frame.iloc[i][0]) + "'s password has been identified as compromised.")
-                        Compromised_Users = Compromised_Users.append([User_Frame.iloc[i][0]])
-                        Drop_Index.append(i)
-                    i += 1
-
-                # Drop those usernames from the dataframe
-                User_Frame.drop(Drop_Index, inplace=True)
-
-                # Reset index in dataframe
-                User_Frame.reset_index(drop=True, inplace=True)
-                
-                # Start where we left off
-                Start_Offset += Split_Limit
-                
-                # Delete dataframe to remove it from memory, and make room for new dataframe
-                # This is in an effort to keep from using massive amounts of memory,
-                # as python does not normally release memory back to the OS
-                del Hash_Frame
-                gc.collect()
-
-                print("Portion done, continuing...")
-                    
-            # Run once more, then quit
-            else:
-                print("Checking against compromised hashes...")
-                # Check to see if user hashes appear in compromised hashes
-                # Returns a new dataframe containing True or False for each user
-                Overlap = User_Frame[1].isin(Hash_Frame[0])
-
-                # Return users with compromised passwords
-                i = 0
-                while i < len(Overlap):
-                    if Overlap[i] == True:
-                        # Print each row, column 0
-                        print("User " + str(User_Frame.iloc[i][0]) + "'s password has been identified as compromised.")
-                        Compromised_Users = Compromised_Users.append([User_Frame.iloc[i][0]])
-                    i += 1
-                    
-                # Delete dataframe to remove it from memory, and make room for new dataframe
-                # This is in an effort to keep from using massive amounts of memory,
-                # as python does not normally release memory back to the OS
-                del Hash_Frame
-                gc.collect()
-            
-                print("Portion done, continuing...")  
-                break
-        else:
-            print("All user passwords have been compromised. Exiting...")
-            break
-
-    # Get time elapsed
-    End_Time = time.time()
-    Elapsed_Time = (End_Time - Start_Time)
-    Elapsed_Time = round(Elapsed_Time, 2)
-    print("\nTotal elapsed time taken to check hashes: " + str(Elapsed_Time) + " (seconds)")
-
-    # Print total number of compromises
-    print(str(len(Compromised_Users)) + " out of " + User_Count + " users have compromised passwords.")
     
-    # Exit
-    input("Done. Press enter to exit...")
-    '''
     elif Admin_State is None:
         print('Elevating privleges and moving to admin window.')
     else:
         print('Error: cannot elevate privileges.')
-    '''
+    
     # Probably export usernames as csv for future use
     return
 
