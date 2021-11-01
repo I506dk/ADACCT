@@ -931,7 +931,8 @@ def check_ntlm_hashes():
                     DC_Password = input("Please enter the administrator password for the domain controller: ")
                     
                     # Allow scripting for the current process
-                    powershell = subprocess.check_output(["powershell.exe", "Set-ExecutionPolicy Bypass -Scope Process -Force"])
+                    #powershell = subprocess.check_output(["powershell.exe", "Set-ExecutionPolicy Bypass -Scope Process -Force"])
+                    powershell = subprocess.check_output(["powershell.exe", "Set-ExecutionPolicy Bypass -Scope CurrentUser -Force"])
                     
                     # Import DSInternals module
                     powershell = subprocess.check_output(["powershell.exe", "Import-Module DSInternals"])
