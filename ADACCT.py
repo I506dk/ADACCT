@@ -4,6 +4,7 @@
 
 # These are part of the python standard library
 import os
+import gc
 import sys
 import ssl
 import time
