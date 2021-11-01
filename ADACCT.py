@@ -7,6 +7,7 @@ import os
 import sys
 import ssl
 import time
+import shutil
 import ctypes
 import smtplib
 import subprocess
@@ -25,7 +26,6 @@ while True:
     try:
         # Import packages here
         import psutil
-        import shutil
         import requests
         import pandas as pd
         from py7zr import unpack_7zarchive
@@ -591,7 +591,6 @@ def run_normal():
             Current_Address = email[0]
             Site_List = email[1]
             if len(Site_List) > 0:
-                #print('\n' + str(Current_Address) + " has been compromised on " + str(len(Site_List)) + " site(s), listed below.")
                 The_End_Result += ('\n' + str(Current_Address) + " has been compromised on " + str(len(Site_List)) + " site(s), listed below: \n\n\t")
                 i = 0
                 while i < len(Site_List):
