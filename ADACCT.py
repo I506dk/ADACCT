@@ -28,7 +28,6 @@ while True:
         import shutil
         import requests
         import pandas as pd
-        from pyunpack import Archive
         from py7zr import unpack_7zarchive
         break
     except Exception as e:
@@ -837,9 +836,6 @@ def run_automated():
     
 # Function to download a file from a given url
 def download_and_unzip():
-    # Install other dependencies that aren't imported (patool allows for unzipping of multiple file types)
-    install_library("patool")
-
     # Url to HIBP hash file
     HIBP_Hashes = "https://downloads.pwnedpasswords.com/passwords/pwned-passwords-ntlm-ordered-by-hash-v7.7z"
 
@@ -863,22 +859,18 @@ def download_and_unzip():
                 file.write(chunk)
     # Close file
     file.close()
-    print("File downloaded.")
     
+    print("File downloaded.")
     # Unzip file in the current directory
     print("Starting file unzip...")
     print("**WARNING** - This will take a significant amount of time to unzip...")
-    #from py7zr import unpack_7zarchive
-    #import shutil
-
+    # Unzip file to current directory (specify the archive type here as well)
     shutil.register_unpack_format('7zip', ['.7z'], unpack_7zarchive)
     shutil.unpack_archive(File_Name, Current_Directory)
-    
-    
-    #Archive(File_Name).extractall(Current_Directory)
     print("File unzipped.")
     # Delete archive file once it has been unzipped
     print("Cleaning up...")
+    
     if os.path.exists(Full_Path):
         os.remove(File_Name)
     else:
