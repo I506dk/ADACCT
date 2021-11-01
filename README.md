@@ -18,8 +18,7 @@
 - [Psutil](https://pypi.org/project/psutil/) - Cross-platform library for process and system monitoring
 - [Requests](https://pypi.org/project/requests/) - HTTP Library
 - [Pandas](https://pypi.org/project/pandas/) - A Powerful data analysis toolkit
-- [shutil](https://docs.python.org/3/library/shutil.html) - File operations library
-- [py7zr](https://pypi.org/project/py7zr/) - 7z library for python
+- [py7zr](https://pypi.org/project/py7zr/) - 7zip library for python
 
 ## Notes
 - [Api Key](https://haveibeenpwned.com/API/Key) - HaveIBeenPwned uses a paid API key, needed for using their API
@@ -28,11 +27,15 @@
 - Api key, email addresses, and email credentials can be saved to text file, instead of manually typed each time
 
 ## Installation
-**Download the latest release of python below:**
+**Download the recommended version of python below (3.9.7):**
 
-[![Python](https://www.python.org/static/community_logos/python-powered-w-100x40.png)](https://www.python.org/downloads/windows/)
+[![Python 3.9.7](https://img.shields.io/badge/python-3.9.7-blue.svg)](https://www.python.org/downloads/release/python-397/)
 
-REMINDER - If using a Python version greater than 3.9.7, make sure Pandas and other libraries support it
+**Or download the latest release of python:**
+
+[![Python Latest](https://img.shields.io/badge/python-latest-blue.svg)](https://www.python.org/downloads/windows/)
+
+**REMINDER** - *If using a Python version greater than 3.9.7, make sure Pandas and other libraries support it*
 
 **Download and install Pip using the following commands:**
 ```
@@ -59,7 +62,6 @@ pip install -r requirements.txt
 pip install psutil
 pip install pandas
 pip install requests
-pip install shutil
 pip install py7zr
 ```
 
