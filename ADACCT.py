@@ -111,7 +111,6 @@ def run_as_admin(argv=None, debug=False):
         argv = sys.argv
 
     if hasattr(sys, '_MEIPASS'):
-        # Support pyinstaller wrapped program.
         arguments = map(str, argv[1:])
     else:
         arguments = map(str, argv)
@@ -125,6 +124,7 @@ def run_as_admin(argv=None, debug=False):
 
     if int(ret) <= 32:
         return False
+        
     return
 
 
@@ -148,27 +148,21 @@ def install_tools():
 
         # If 1, this is a normal windows version
         if os_check == '1':
-            # This works, but is slow. And probably installing other modules that aren't needed
-            #powershell = subprocess.check_output(["powershell.exe", "Get-WindowsCapability -Name RSAT* -Online | Add-WindowsCapability -Online"])
             # Install AD Tools, with specific version
             powershell = subprocess.check_output(["powershell.exe", "Add-WindowsCapability -Online -Name 'Rsat.ActiveDirectory.DS-LDS.Tools~~~~0.0.1.0'"])
-            # Install AD Tools, without version number
-            #powershell = subprocess.check_output(["powershell.exe", "Add-WindowsCapability -Online -Name 'Rsat.ActiveDirectory.DS-LDS.Tools'"
-            #powershell = subprocess.check_output(["powershell.exe", "Add-WindowsCapability -Name RSAT* -Online"])
             powershell = subprocess.check_output(["powershell.exe", "Install-Module -Name DSInternals -Force"])
 
         # If 2 or 3, we are on windows server
         elif (os_check == '2') or (os_check == '3'):
-            # These two work, but only on windows server editions (faster than above)
+            # These two work, but only on windows server editions
             powershell_install = subprocess.check_output(["powershell.exe", "Import-Module ServerManager"])
             powershell_install = subprocess.check_output(["powershell.exe", "Add-WindowsFeature -Name 'RSAT-AD-PowerShell' -IncludeAllSubFeature"])
             powershell = subprocess.check_output(["powershell.exe", "Install-Module -Name DSInternals -Force"])
 
-        # Don't know what this would be. Just try to install the slow way.
+        # Don't know what this would be. Just try to install the default windows 10 way
         else:
-            # This works, but is slow. And probably installing other modules that aren't needed
-            powershell = subprocess.check_output(["powershell.exe", "Get-WindowsCapability -Name RSAT* -Online | select DisplayName"])
-            powershell = subprocess.check_output(["powershell.exe", "Add-WindowsCapability -Name RSAT* -Online"])
+            # Install AD Tools, with specific version
+            powershell = subprocess.check_output(["powershell.exe", "Add-WindowsCapability -Online -Name 'Rsat.ActiveDirectory.DS-LDS.Tools~~~~0.0.1.0'"])
             powershell = subprocess.check_output(["powershell.exe", "Install-Module -Name DSInternals -Force"])
         print("Done installing tools.")
     elif Admin_State is None:
@@ -893,11 +887,6 @@ def check_ntlm_hashes():
         # Install AD Tools
         install_tools()
 
-        #elif Admin_State is None:
-        #    print('Elevating privleges and moving to admin window.')
-        #else:
-        #    print('Error: cannot elevate privileges.')
-
         # Call powershell to get current domain name
         # Strip all other characters to isolate the domain name as a string
         domain_name = subprocess.check_output(["powershell.exe", "Get-WmiObject -Namespace root\cimv2 -Class Win32_ComputerSystem | Select Domain | Format-List"]).decode("utf-8")
@@ -932,7 +921,6 @@ def check_ntlm_hashes():
                     DC_Password = input("Please enter the administrator password for the domain controller: ")
                     
                     # Allow scripting for the current process
-                    #powershell = subprocess.check_output(["powershell.exe", "Set-ExecutionPolicy Bypass -Scope Process -Force"])
                     powershell = subprocess.check_output(["powershell.exe", "Set-ExecutionPolicy Bypass -Scope CurrentUser -Force"])
                     
                     # Import DSInternals module
@@ -952,6 +940,11 @@ def check_ntlm_hashes():
                         i += 1
                     
                     User_Frame = pd.DataFrame(hash_list)
+                    
+                    # Powershell returns hashes in all lowercase
+                    # HIBP gives us the hashes in all caps
+                    User_Frame.iloc[:][1] = User_Frame.iloc[:][1].str.upper()
+                    
                     print("Hashes replicated. Checking against database...")
                     break
                 except subprocess.CalledProcessError as e:
