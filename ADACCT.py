@@ -974,10 +974,22 @@ def check_ntlm_hashes():
         Hash_Existence = path.exists(Full_Path)
         if Hash_Existence == False:
             print("Cannot find Compromised NTLM Hash File.")
-            print("File can be downloaded using the -d or --download arguments.")
-            # Exit
-            input("Done. Press enter to exit...")
-            quit()
+            
+            # Download has file if warranted
+            while True:
+                Download_File = input("Would you like to download HIBP's hash file now? (y/n) ").lower()
+                if (Download_File == 'y') or (Download_File == "yes"):
+                    # Download and unzip
+                    download_and_unzip()
+                    break
+                elif (Download_File == 'n') or (Download_File == "no"):
+                    # Else exit
+                    print("File can be downloaded using the -d or --download arguments.")
+                    input("Done. Press enter to exit...")
+                    quit()
+                else:
+                    # Other character entered.
+                    print("Invalid response entered. Use y/Y for yes, and n/N for no.")
         else:
             pass
 
