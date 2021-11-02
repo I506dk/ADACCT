@@ -14,6 +14,7 @@ import smtplib
 import subprocess
 import urllib.parse
 from os import path
+from getpass import getpass
 
 
 # Function to install packages via pip (aka Pip Cheat)
@@ -918,7 +919,7 @@ def check_ntlm_hashes():
                 try:
                     # Get admin DC credentials from user
                     DC_Username = input("Please enter the administrator username for the domain controller: ")
-                    DC_Password = input("Please enter the administrator password for the domain controller: ")
+                    DC_Password = getpass("Please enter the administrator password for the domain controller (Characters will not be printed): ")
                     
                     # Get current user execution policy, so that we can revert it later
                     User_Policy = subprocess.check_output(["powershell.exe", "Get-ExecutionPolicy -Scope CurrentUser"]).decode("utf-8")
