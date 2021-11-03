@@ -639,11 +639,13 @@ def run_normal():
             Current_Result.append(result[0])
             for site in result[1]:
                 Current_Result.append(site)
-            Simplified_Results.append(Current_Result)
-        # Create datframe
-        Result_Dataframe = pd.DataFrame(Simplified_Results)
-        # Save to csv file
-        Result_Dataframe.to_csv('Compromised_Emails.csv', index=False)
+            # Write to csv file
+            with open("Compromised_Emails.csv", 'w+') as file:
+                for item in Current_Result:
+                    file.write(str(item))
+                    file.write(',')
+                file.write('\n')
+                file.close()
        
         # Beautify results (Results come back as a list of lists, after I get ahold of them anyway)
         The_End_Result = ''
@@ -844,11 +846,13 @@ def run_automated():
             Current_Result.append(result[0])
             for site in result[1]:
                 Current_Result.append(site)
-            Simplified_Results.append(Current_Result)
-        # Create datframe
-        Result_Dataframe = pd.DataFrame(Simplified_Results)
-        # Save to csv file
-        Result_Dataframe.to_csv('Compromised_Emails.csv', index=False)
+            # Write to csv file
+            with open("Compromised_Emails.csv", 'w+') as file:
+                for item in Current_Result:
+                    file.write(str(item))
+                    file.write(',')
+                file.write('\n')
+                file.close()
        
         # Beautify results (Results come back as a list of lists, after I get ahold of them anyway)
         The_End_Result = ''
