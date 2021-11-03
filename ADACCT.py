@@ -866,7 +866,6 @@ def run_automated():
                     # Check if i is an exact multiple of 4.
                     if (i != 0) and (i % 4 == 0):
                         # Start new line after every 4 sites printed
-                        #print()
                         The_End_Result += '\n\t'
                     i += 1
             # Ad another newline for readability
