@@ -1048,7 +1048,7 @@ def check_ntlm_hashes():
                     while i < len(Overlap):
                         if Overlap[i] == True:
                             # Print each row, column 0
-                            print("User " + str(User_Frame.iloc[i][0]) + "'s password has been identified as compromised.")
+                            print(" * User " + str(User_Frame.iloc[i][0]) + "'s password has been identified as compromised.")
                             Compromised_Users = Compromised_Users.append([User_Frame.iloc[i][0]])
                             Drop_Index.append(i)
                         i += 1
