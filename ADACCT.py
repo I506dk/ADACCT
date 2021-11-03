@@ -1201,8 +1201,6 @@ def main(args):
         Admin_State = run_as_admin()
 
         if Admin_State is True:
-            # Install AD Tools
-            install_tools()
             # Run script as normal with all options
             run_normal()
             #download_and_unzip()
