@@ -14,7 +14,8 @@
 - The script checks system memory and aims for 70-80% usage so that a single machine doesn't crash
 - Option to save API key and Email address credentials to file instead of entering them manually each time
 
-## Dependencies
+## Dependencies 
+[![Known Vulnerabilities](https://snyk.io/test/github/I506dk/ADACCT/badge.svg)](https://snyk.io/test/github/I506dk/ADACCT)
 - [Psutil](https://pypi.org/project/psutil/) - Cross-platform library for process and system monitoring
 - [Requests](https://pypi.org/project/requests/) - HTTP Library
 - [Pandas](https://pypi.org/project/pandas/) - A Powerful data analysis toolkit
