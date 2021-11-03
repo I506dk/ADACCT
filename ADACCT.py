@@ -631,6 +631,19 @@ def run_normal():
        
         # Send email list to api for checking
         HIBP_Results = check_email(Email_Addresses, Api_Key)
+        
+        # Create a dataframe of the compromised emails and site, and then save as csv file
+        Simplified_Results = []
+        for result in HIBP_Results:
+            Current_Result = []
+            Current_Result.append(result[0])
+            for site in result[1]:
+                Current_Result.append(site)
+            Simplified_Results.append(Current_Result)
+        # Create datframe
+        Result_Dataframe = pd.dataframe(Simplified_Results)
+        # Save to csv file
+        Result_Dataframe.to_csv('Compromised_Emails.csv', index=False)
        
         # Beautify results (Results come back as a list of lists, after I get ahold of them anyway)
         The_End_Result = ''
@@ -760,6 +773,10 @@ def run_normal():
             else:
                 # Other character entered.
                 print("Invalid response entered. Use y/Y for yes, and n/N for no.")
+                
+        # Save to csv file as well (default)
+        
+                
         # Exit
         input("Done. Press enter to exit or continue...")
                 
@@ -819,6 +836,19 @@ def run_automated():
        
         # Send email list to api for checking
         HIBP_Results = check_email(Email_Addresses, Api_Key)
+        
+        # Create a dataframe of the compromised emails and site, and then save as csv file
+        Simplified_Results = []
+        for result in HIBP_Results:
+            Current_Result = []
+            Current_Result.append(result[0])
+            for site in result[1]:
+                Current_Result.append(site)
+            Simplified_Results.append(Current_Result)
+        # Create datframe
+        Result_Dataframe = pd.dataframe(Simplified_Results)
+        # Save to csv file
+        Result_Dataframe.to_csv('Compromised_Emails.csv', index=False)
        
         # Beautify results (Results come back as a list of lists, after I get ahold of them anyway)
         The_End_Result = ''
