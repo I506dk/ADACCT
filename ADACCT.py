@@ -153,8 +153,16 @@ def install_tools():
         else:
             DS_Exists = True
         
-        # Install NuGet package provider
-        NuGet = subprocess.check_output(["powershell.exe", "Install-PackageProvider -Name 'NuGet' -Force"])
+        # Check to see if the NuGet package is installed
+        nuget_check = subprocess.check_output(["powershell.exe", "Find-Package -Name 'NuGet'"]).decode("utf-8")
+        
+        # Set boolean value if the modules exist or not
+        if "No match was found for the specified search criteria" in ad_module_check:
+            # Install NuGet package provider
+            NuGet = subprocess.check_output(["powershell.exe", "Install-PackageProvider -Name 'NuGet' -Force"])
+        else:
+            # Pass as it already exists
+            pass
        
         # Check to see if OS is a server version of windows or not
         os_check = subprocess.check_output(["powershell.exe", "$osInfo = Get-CimInstance -ClassName Win32_OperatingSystem; $osInfo.ProductType"])
