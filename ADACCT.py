@@ -403,7 +403,7 @@ def send_mail(to_address, message, *args):
                         print("Save file empty.")
                         # Don't use credentials. Ask for new ones.
                         Sender_Address = input("Please enter an email address to send results from (Make sure Less Secure Apps are allowed): ")
-                        Sender_Password = input("Enter password for above email address previously entered: ")
+                        Sender_Password = getpass("Enter password for above email address previously entered (Characters will not be printed): ")
                         # Save if warranted
                         while True:
                             Save_Credentials = input("Would you like to save these credentials for future use? (y/n) ").lower()
@@ -432,7 +432,7 @@ def send_mail(to_address, message, *args):
                     elif (Continue == 'n') or (Continue == "no"):
                         # Don't use credentials. Ask for new ones.
                         Sender_Address = input("Please enter an email address to send results from (Make sure Less Secure Apps are allowed): ")
-                        Sender_Password = input("Enter password for above email address previously entered: ")
+                        Sender_Password = getpass("Enter password for above email address previously entered (Characters will not be printed): ")
                         # Save if warranted
                         while True:
                             Save_Credentials = input("Would you like to save these credentials for future use? (y/n) ").lower()
@@ -460,7 +460,7 @@ def send_mail(to_address, message, *args):
                 print("No previous sender credentials exist.")
                 # Ask user for credentials
                 Sender_Address = input("Please enter an email address to send results from (Make sure Less Secure Apps are allowed): ")
-                Sender_Password = input("Enter password for above email address previously entered: ")
+                Sender_Password = getpass("Enter password for above email address previously entered (Characters will not be printed): ")
                 # Save if warranted
                 while True:
                     Save_Credentials = input("Would you like to save these credentials for future use? (y/n) ").lower()
@@ -494,7 +494,7 @@ def send_mail(to_address, message, *args):
                 elif (Continue == 'n') or (Continue == "no"):
                     # Don't use hardcoded credentials. Ask for new ones.
                     Sender_Address = input("Please enter an email address to send results from (Make sure Less Secure Apps are allowed): ")
-                    Sender_Password = input("Enter password for above email address previously entered: ")
+                    Sender_Password = getpass("Enter password for above email address previously entered (Characters will not be printed): ")
                     Save_Credentials = input("Would you like to save these credentials for future use? (y/n) ")
                     # save
                     break
