@@ -641,7 +641,7 @@ def run_normal():
                 Current_Result.append(site)
             Simplified_Results.append(Current_Result)
         # Create datframe
-        Result_Dataframe = pd.dataframe(Simplified_Results)
+        Result_Dataframe = pd.DataFrame(Simplified_Results)
         # Save to csv file
         Result_Dataframe.to_csv('Compromised_Emails.csv', index=False)
        
@@ -846,7 +846,7 @@ def run_automated():
                 Current_Result.append(site)
             Simplified_Results.append(Current_Result)
         # Create datframe
-        Result_Dataframe = pd.dataframe(Simplified_Results)
+        Result_Dataframe = pd.DataFrame(Simplified_Results)
         # Save to csv file
         Result_Dataframe.to_csv('Compromised_Emails.csv', index=False)
        
