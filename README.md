@@ -38,6 +38,7 @@
 **REMINDER** - *If using a Python version greater than 3.9.7, make sure Pandas and other libraries support it*
 
 **Download and install Pip using the following commands:**
+- *Newer versions of Python automatically install pip*
 ```
 curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
 python get-pip.py
