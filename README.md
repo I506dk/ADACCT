@@ -8,7 +8,7 @@
 ## Features
 - Pulls all user's email addresses from the Active Directory
 - Uses HaveIBeenPwned's api to check each email address for compromise
-- Compromised users can be exported as a csv file or emailed
+- Compromised users can be printed to the screen or emailed
 - (Ab)Uses AD Replication to pull all NTLM hashes from the Domain Controller (Requires Admin credentials for Domain Controller)
 - Compares user hashes against HaveIBeenPwned's compromised hash file
 - The script checks system memory and aims for 70-80% usage so that a single machine doesn't crash
