@@ -185,10 +185,10 @@ def get_emails(*args):
     email_list = []
    
     # Install AD Tools
-    #install_tools()
+    install_tools()
 
     # Call powershell process and pull email accounts from all users
-    powershell = subprocess.check_output(["powershell.exe", "Import-Module activedirectory"])
+    powershell = subprocess.check_output(["powershell.exe", "Import-Module ActiveDirectory"])
     Output_Message = powershell.decode("utf-8")
     if "Error initializing default drive" in Output_Message:
         if Auto_Bit == 0:
@@ -885,6 +885,9 @@ def check_ntlm_hashes():
     Admin_State = run_as_admin()
     # (Local) Administrator privileges are needed for installing AD tools
     if Admin_State is True:
+        # Install AD Tools
+        install_tools()
+    
         # Call powershell to get current domain name
         # Strip all other characters to isolate the domain name as a string
         domain_name = subprocess.check_output(["powershell.exe", "Get-WmiObject -Namespace root\cimv2 -Class Win32_ComputerSystem | Select Domain | Format-List"]).decode("utf-8")
@@ -1165,40 +1168,28 @@ def main(args):
             download_and_unzip()
         elif '-e' in args:
             if '-A' in args:
-                # Install AD Tools
-                install_tools()
                 # Run script without user input
                 # This has to be run as admin.
                 # Results wil be automatically emailed.
                 # Credentials must be hard coded, or saved in file.
                 run_automated()
             else:
-                # Install AD Tools
-                install_tools()
                 # Run script as normal
                 run_normal()
         elif "--email" in args:
             if '-A' in args:
-                # Install AD Tools
-                install_tools()
                 # Run script without user input
                 # This has to be run as admin.
                 # Results wil be automatically emailed.
                 # Credentials must be hard coded, or saved in file.
                 run_automated()
             else:
-                # Install AD Tools
-                install_tools()
                 # Run script as normal
                 run_normal()
         elif '-n' in args:
-            # Install AD Tools
-            install_tools()
             # Check NTLM hashes
             check_ntlm_hashes()
         elif "--ntlm" in args:
-            # Install AD Tools
-            install_tools()
             # Check NTLM hashes
             check_ntlm_hashes()
         else:
