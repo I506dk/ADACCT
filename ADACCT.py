@@ -185,7 +185,7 @@ def get_emails(*args):
     email_list = []
    
     # Install AD Tools
-    install_tools()
+    #install_tools()
 
     # Call powershell process and pull email accounts from all users
     powershell = subprocess.check_output(["powershell.exe", "Import-Module activedirectory"])
@@ -885,9 +885,6 @@ def check_ntlm_hashes():
     Admin_State = run_as_admin()
     # (Local) Administrator privileges are needed for installing AD tools
     if Admin_State is True:
-        # Install AD Tools
-        install_tools()
-
         # Call powershell to get current domain name
         # Strip all other characters to isolate the domain name as a string
         domain_name = subprocess.check_output(["powershell.exe", "Get-WmiObject -Namespace root\cimv2 -Class Win32_ComputerSystem | Select Domain | Format-List"]).decode("utf-8")
@@ -926,7 +923,6 @@ def check_ntlm_hashes():
                     User_Policy = User_Policy.strip()
                     User_Policy = User_Policy.replace('\r', '')
                     User_Policy = User_Policy.replace('\n', '')
-                    print(User_Policy)
                     
                     # Allow scripting for the current process
                     powershell = subprocess.check_output(["powershell.exe", "Set-ExecutionPolicy Bypass -Scope CurrentUser -Force"])
@@ -1169,28 +1165,40 @@ def main(args):
             download_and_unzip()
         elif '-e' in args:
             if '-A' in args:
+                # Install AD Tools
+                install_tools()
                 # Run script without user input
                 # This has to be run as admin.
                 # Results wil be automatically emailed.
                 # Credentials must be hard coded, or saved in file.
                 run_automated()
             else:
+                # Install AD Tools
+                install_tools()
                 # Run script as normal
                 run_normal()
         elif "--email" in args:
             if '-A' in args:
+                # Install AD Tools
+                install_tools()
                 # Run script without user input
                 # This has to be run as admin.
                 # Results wil be automatically emailed.
                 # Credentials must be hard coded, or saved in file.
                 run_automated()
             else:
+                # Install AD Tools
+                install_tools()
                 # Run script as normal
                 run_normal()
         elif '-n' in args:
+            # Install AD Tools
+            install_tools()
             # Check NTLM hashes
             check_ntlm_hashes()
         elif "--ntlm" in args:
+            # Install AD Tools
+            install_tools()
             # Check NTLM hashes
             check_ntlm_hashes()
         else:
@@ -1202,6 +1210,8 @@ def main(args):
         Admin_State = run_as_admin()
 
         if Admin_State is True:
+            # Install AD Tools
+            install_tools()
             # Run script as normal with all options
             run_normal()
             #download_and_unzip()
