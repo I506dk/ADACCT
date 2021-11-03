@@ -643,10 +643,11 @@ def run_normal():
                 
         # Write to csv file
         with open("Compromised_Emails.csv", 'a') as file:
-            for item in Simplified_Results:
-                file.write(str(item))
-                file.write(',')
-            file.write('\n')
+            for result in Simplified_Results:
+                for item in result:
+                    file.write(str(item))
+                    file.write(',')
+                file.write('\n')
             file.close()
        
         # Beautify results (Results come back as a list of lists, after I get ahold of them anyway)
@@ -852,10 +853,11 @@ def run_automated():
                 
         # Write to csv file
         with open("Compromised_Emails.csv", 'a') as file:
-            for item in Simplified_Results:
-                file.write(str(item))
-                file.write(',')
-            file.write('\n')
+            for result in Simplified_Results:
+                for item in result:
+                    file.write(str(item))
+                    file.write(',')
+                file.write('\n')
             file.close()
        
         # Beautify results (Results come back as a list of lists, after I get ahold of them anyway)
