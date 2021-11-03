@@ -631,8 +631,6 @@ def run_normal():
        
         # Send email list to api for checking
         HIBP_Results = check_email(Email_Addresses, Api_Key)
-        
-        print(HIBP_Results)
        
         # Beautify results (Results come back as a list of lists, after I get ahold of them anyway)
         The_End_Result = ''
