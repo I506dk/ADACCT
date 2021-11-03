@@ -955,7 +955,6 @@ def check_ntlm_hashes():
                     print("Hashes replicated. Checking against database...")
                     break
                 except subprocess.CalledProcessError as e:
-                    print(e)
                     print("Error. Possible invalid credentials used.")
             
         except subprocess.CalledProcessError as e:
