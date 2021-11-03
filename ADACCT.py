@@ -1157,6 +1157,9 @@ def check_ntlm_hashes():
         # Print total number of compromises
         print(str(len(Compromised_Users)) + " out of " + User_Count + " users have compromised passwords.")
         
+        # Save compromised users as csv file (only usernames in this file)
+        Compromised_Users.to_csv('Compromised_Users.csv', index=False)
+        
         # Exit
         input("Done. Press enter to exit...")
     
