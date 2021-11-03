@@ -159,7 +159,7 @@ def install_tools():
         # Set boolean value if the modules exist or not
         if "No match was found for the specified search criteria" in ad_module_check:
             # Install NuGet package provider
-            NuGet = subprocess.check_output(["powershell.exe", "Install-PackageProvider -Name 'NuGet' -Force"])
+            NuGet = subprocess.check_output(["powershell.exe", "Install-PackageProvider -Name 'NuGet' -Force; Import-PackageProvider -Name 'NuGet'"])
         else:
             # Pass as it already exists
             pass
