@@ -138,6 +138,21 @@ def install_tools():
         # Install active directory tools
         print("Installing Active Directory Tools. This may take a few minutes. Please wait...")
         
+        # Check to see if tools are already installed
+        ad_module_check = subprocess.check_output(["powershell.exe", "Get-InstalledModule -Name 'ActiveDirectory'"]).decode("utf-8")
+        ds_module_check = subprocess.check_output(["powershell.exe", "Get-InstalledModule -Name 'DSInternals'"]).decode("utf-8")
+        
+        # Set boolean value if the modules exist or not
+        if "No match was found for the specified search criteria" in ad_module_check:
+            AD_Exists = False
+        else:
+            AD_Exists = True
+            
+        if "No match was found for the specified search criteria" in ds_module_check:
+            DS_Exists = False
+        else:
+            DS_Exists = True
+        
         # Install NuGet package provider
         NuGet = subprocess.check_output(["powershell.exe", "Install-PackageProvider -Name 'NuGet' -Force"])
        
@@ -149,22 +164,47 @@ def install_tools():
 
         # If 1, this is a normal windows version
         if os_check == '1':
-            # Install AD Tools, with specific version
-            powershell = subprocess.check_output(["powershell.exe", "Add-WindowsCapability -Online -Name 'Rsat.ActiveDirectory.DS-LDS.Tools~~~~0.0.1.0'"])
-            powershell = subprocess.check_output(["powershell.exe", "Install-Module -Name DSInternals -Force"])
-
+            if AD_Exists == False:
+                # Install AD Tools, with specific version
+                powershell = subprocess.check_output(["powershell.exe", "Add-WindowsCapability -Online -Name 'Rsat.ActiveDirectory.DS-LDS.Tools~~~~0.0.1.0'"])
+            else:
+                # They are already installed
+                pass
+            if DS_Exists == False:
+                # Install DSInternals
+                powershell = subprocess.check_output(["powershell.exe", "Install-Module -Name DSInternals -Force"])
+            else:
+                # They are already installed
+                pass
         # If 2 or 3, we are on windows server
         elif (os_check == '2') or (os_check == '3'):
-            # These two work, but only on windows server editions
-            powershell_install = subprocess.check_output(["powershell.exe", "Import-Module ServerManager"])
-            powershell_install = subprocess.check_output(["powershell.exe", "Add-WindowsFeature -Name 'RSAT-AD-PowerShell' -IncludeAllSubFeature"])
-            powershell = subprocess.check_output(["powershell.exe", "Install-Module -Name DSInternals -Force"])
-
+            if AD_Exists == False:
+                # These two work, but only on windows server editions
+                powershell_install = subprocess.check_output(["powershell.exe", "Import-Module ServerManager"])
+                powershell_install = subprocess.check_output(["powershell.exe", "Add-WindowsFeature -Name 'RSAT-AD-PowerShell' -IncludeAllSubFeature"])
+            else:
+                # They are already installed
+                pass
+            if DS_Exists == False:
+                # Install DSInternals
+                powershell = subprocess.check_output(["powershell.exe", "Install-Module -Name DSInternals -Force"])
+            else:
+                # They are already installed
+                pass
         # Don't know what this would be. Just try to install the default windows 10 way
         else:
-            # Install AD Tools, with specific version
-            powershell = subprocess.check_output(["powershell.exe", "Add-WindowsCapability -Online -Name 'Rsat.ActiveDirectory.DS-LDS.Tools~~~~0.0.1.0'"])
-            powershell = subprocess.check_output(["powershell.exe", "Install-Module -Name DSInternals -Force"])
+            if AD_Exists == False:
+                # Install AD Tools, with specific version
+                powershell = subprocess.check_output(["powershell.exe", "Add-WindowsCapability -Online -Name 'Rsat.ActiveDirectory.DS-LDS.Tools~~~~0.0.1.0'"])
+            else:
+                # They are already installed
+                pass
+            if DS_Exists == False:
+                # Install DSInternals
+                powershell = subprocess.check_output(["powershell.exe", "Install-Module -Name DSInternals -Force"])
+            else:
+                # They are already installed
+                pass
         print("Done installing tools.")
     elif Admin_State is None:
         print('Elevating privleges and moving to admin window.')
