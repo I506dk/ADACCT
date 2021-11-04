@@ -138,9 +138,22 @@ def install_tools():
         # Install active directory tools
         print("Installing Active Directory Tools. This may take a few minutes. Please wait...")
         
+        # Check to see if the NuGet package is installed
+        nuget_check = subprocess.check_output(["powershell.exe", "Find-Package -Name 'nuget'"]).decode("utf-8")
+        
+        # Set boolean value if the modules exist or not
+        if "No match was found for the specified search criteria" in ad_module_check:
+            # Install NuGet package provider
+            NuGet = subprocess.check_output(["powershell.exe", "Install-PackageProvider -Name 'nuget' -Force; Import-PackageProvider -Name 'nuget'"])
+        else:
+            # Pass as it already exists
+            pass
+        
+        
+        
         # Check to see if tools are already installed
-        #ad_module_check = subprocess.check_output(["powershell.exe", "Get-InstalledModule -Name 'ActiveDirectory'"]).decode("utf-8")
-        #ds_module_check = subprocess.check_output(["powershell.exe", "Get-InstalledModule -Name 'DSInternals'"]).decode("utf-8")
+        ad_module_check = subprocess.check_output(["powershell.exe", "Get-InstalledModule -Name 'ActiveDirectory'"]).decode("utf-8")
+        ds_module_check = subprocess.check_output(["powershell.exe", "Get-InstalledModule -Name 'DSInternals'"]).decode("utf-8")
         
         # Set boolean value if the modules exist or not
         if "No match was found for the specified search criteria" in ad_module_check:
@@ -152,21 +165,6 @@ def install_tools():
             DS_Exists = False
         else:
             DS_Exists = True
-        
-        # Check to see if the NuGet package is installed
-        nuget_check = subprocess.check_output(["powershell.exe", "Find-Package -Name 'nuget'"]).decode("utf-8")
-        
-        # Set boolean value if the modules exist or not
-        if "No match was found for the specified search criteria" in ad_module_check:
-            # Install NuGet package provider
-            NuGet = subprocess.check_output(["powershell.exe", "Install-PackageProvider -Name 'nuget' -Force; Import-PackageProvider -Name 'nuget'"])
-        else:
-            # Pass as it already exists
-            pass
-            
-        # Check to see if tools are already installed
-        ad_module_check = subprocess.check_output(["powershell.exe", "Get-InstalledModule -Name 'ActiveDirectory'"]).decode("utf-8")
-        ds_module_check = subprocess.check_output(["powershell.exe", "Get-InstalledModule -Name 'DSInternals'"]).decode("utf-8")
        
         # Check to see if OS is a server version of windows or not
         os_check = subprocess.check_output(["powershell.exe", "$osInfo = Get-CimInstance -ClassName Win32_OperatingSystem; $osInfo.ProductType"])
