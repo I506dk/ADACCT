@@ -138,18 +138,13 @@ def install_tools():
         # Install active directory tools
         print("Installing Active Directory Tools. This may take a few minutes. Please wait...")
         
-        # Check to see if the NuGet package is installed
-        nuget_check = subprocess.check_output(["powershell.exe", "Find-Package -Name 'nuget'"]).decode("utf-8")
-        
-        # Set boolean value if the modules exist or not
-        if "No match was found for the specified search criteria" in ad_module_check:
+        try: 
+            # Check to see if the NuGet package is installed
+            # Will return an error if it can't find it
+            nuget_check = subprocess.check_output(["powershell.exe", "Find-Package -Name 'nuget'"]).decode("utf-8")
+        except subprocess.CalledProcessError:
             # Install NuGet package provider
             NuGet = subprocess.check_output(["powershell.exe", "Install-PackageProvider -Name 'nuget' -Force; Import-PackageProvider -Name 'nuget'"])
-        else:
-            # Pass as it already exists
-            pass
-        
-        
         
         # Check to see if tools are already installed
         ad_module_check = subprocess.check_output(["powershell.exe", "Get-InstalledModule -Name 'ActiveDirectory'"]).decode("utf-8")
