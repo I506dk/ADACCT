@@ -141,10 +141,10 @@ def install_tools():
         try: 
             # Check to see if the NuGet package is installed
             # Will return an error if it can't find it
-            nuget_check = subprocess.check_output(["powershell.exe", "Find-Package -Name 'nuget'"]).decode("utf-8")
+            nuget_check = subprocess.check_output(["powershell.exe", "Find-Package -Name 'nuget' -Force"]).decode("utf-8")
         except subprocess.CalledProcessError:
             # Install NuGet package provider
-            NuGet = subprocess.check_output(["powershell.exe", "Install-PackageProvider -Name 'nuget' -Force; Import-PackageProvider -Name 'nuget'"])
+            NuGet = subprocess.check_output(["powershell.exe", "Install-PackageProvider -Name 'nuget' -Force"])#; Import-PackageProvider -Name 'nuget'"])
         
         # Check to see if tools are already installed
         ad_module_check = subprocess.check_output(["powershell.exe", "Get-InstalledModule -Name 'ActiveDirectory'"]).decode("utf-8")
