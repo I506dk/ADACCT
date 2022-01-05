@@ -2,7 +2,7 @@
 
 ![AD_Logo](https://user-images.githubusercontent.com/33561466/138386605-36291c2a-c68f-4390-84a7-5567d8b624e1.png)
 
-#### A Python script to check Acitve Directory User emails and NTLM password hashes for compromise against HaveIBeenPwned's database
+#### A Python script to check Active Directory User emails and NTLM password hashes for compromise against HaveIBeenPwned's database
 #### Prounounced /ˈadikt/ - an enthusiastic devotee of a specified thing or activity.
 
 ## Features
