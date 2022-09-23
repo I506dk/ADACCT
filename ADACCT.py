@@ -1088,24 +1088,29 @@ def check_ntlm_hashes():
 
         # 613,584,246 lines in hash file
         # 7 million hashes per gigabyte of ram used seems to be a safe amount
-        # Utilize 75% of system ram (Figure out how many hashes that allows for)
+        # Utilize 8% of unused memory (Figure out how many hashes that allows for)
         # Get total machine memory and convert to gigabytes
-        Bytes = psutil.virtual_memory().total
-        Gigs = Bytes/1073741824
+        #Bytes = psutil.virtual_memory().total
         #print("Total memory:", Gigs)
 
         # Get total memory used
         #Bytes = psutil.virtual_memory().used
-        #Gigs = Bytes/1073741824
+
         #print("Total memory used:", Gigs)
 
         # Get total memory free
-        #Bytes = psutil.virtual_memory().free
-        #Gigs = Bytes/1073741824
+        Bytes = psutil.virtual_memory().free
         #print("Total memory free:", Gigs)
 
-        # Only allow 75% of memory to be used by python
-        Allowed_Usage = 0.75
+        # Calculate memory usage of dataframe and subtract that from the allocated memory (in bytes)
+        #User_Frame_Bytes = User_Frame.memory_usage(index=True, deep=True).sum()
+        #Bytes = Bytes - User_Frame_Bytes
+
+        # Convert bytes to gigs
+        Gigs = Bytes/1073741824
+
+        # Only allow 80% of memory to be used by python
+        Allowed_Usage = 0.8
 
         # Get number of gigabytes allowed
         Allowed_Gigs = Allowed_Usage * Gigs
