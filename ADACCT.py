@@ -23,12 +23,17 @@ def install_library(package):
     subprocess.call(['pip', 'install', package])
     return
 
+# Install pypiwin32 to access windows api services
+install_library("pypiwin32")
+
 # Install missing packages
 while True:
     try:
         # Import packages here
         import psutil
+        import binascii
         import requests
+        import win32crypt
         import pandas as pd
         from py7zr import unpack_7zarchive
         break
@@ -127,6 +132,62 @@ def run_as_admin(argv=None, debug=False):
         return False
         
     return
+    
+
+# Function to export credentials to xml file and encrypt using windows dpapi
+def export_credentials(username, password):
+    # Encrypt the password using dpapi
+    encrypted_password = win32crypt.CryptProtectData(password.encode("utf-16-le"))
+    
+    # Convert password to secure string format used by powershell
+    password_secure_string = binascii.hexlify(encrypted_password).decode()
+
+    # Use the same xml format as for powershells Export-Clixml, just replace values for username and password.
+    xml = f"""<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>System.Management.Automation.PSCredential</T>
+      <T>System.Object</T>
+    </TN>
+    <ToString>System.Management.Automation.PSCredential</ToString>
+    <Props>
+      <S N="UserName">{username}</S>
+      <SS N="Password">{password_secure_string}</SS>
+    </Props>
+  </Obj>
+</Objs>"""
+    
+    # Write encrypted xml data to file
+    file = open("clixml.xml", "w", encoding='utf-16')
+    file.write(xml)
+    file.close()
+    
+    # Print ending message
+    print("Credentials saved to: clixml.xml")
+
+    return
+
+
+# Function to import credentials from xml file
+def import_credentials(filename):
+    # Import file and get credentials
+    with open(filename, 'r', encoding='utf-16') as f:
+        xml = f.read()
+
+        # Extract username and password from the XML since thats all we care about.
+        username = xml.split('<S N="UserName">')[1].split("</S>")[0]
+        password_secure_string = xml.split('<SS N="Password">')[1].split("</SS>")[0]
+
+        # CryptUnprotectDate returns two values, description and the password, 
+        # we dont care about the description, so we use _ as variable name.
+        _, decrypted_password_string = win32crypt.CryptUnprotectData(
+            binascii.unhexlify(password_secure_string), None, None, None, 0
+        )
+
+        # Decode password string to get rid of unknown characters
+        decrypted_password_string = decrypted_password_string.decode("utf-16-le")
+
+        return username, decrypted_password_string
 
 
 # Function to install active directory tools via powershell
