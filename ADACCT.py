@@ -178,11 +178,8 @@ def import_credentials(filename):
         username = xml.split('<S N="UserName">')[1].split("</S>")[0]
         password_secure_string = xml.split('<SS N="Password">')[1].split("</SS>")[0]
 
-        # CryptUnprotectDate returns two values, description and the password, 
-        # we dont care about the description, so we use _ as variable name.
-        _, decrypted_password_string = win32crypt.CryptUnprotectData(
-            binascii.unhexlify(password_secure_string), None, None, None, 0
-        )
+        # CryptUnprotectData returns two values, description and the password
+        _, decrypted_password_string = win32crypt.CryptUnprotectData(binascii.unhexlify(password_secure_string))#, None, None, None, 0)
 
         # Decode password string to get rid of unknown characters
         decrypted_password_string = decrypted_password_string.decode("utf-16-le")
@@ -466,6 +463,7 @@ def send_mail(to_address, message, *args):
                         while True:
                             Save_Credentials = input("Would you like to save these credentials for future use? (y/n) ").lower()
                             if (Save_Credentials == 'y') or (Save_Credentials == "yes"):
+########################################################################
                                 # Save credentials as emailaddress:emailpassword
                                 print("Saving to file...")
                                 with open(Full_Path, 'w+') as file:
@@ -474,6 +472,7 @@ def send_mail(to_address, message, *args):
                                     file.close()
                                 print("Saved!")
                                 break
+########################################################################
                             elif (Save_Credentials == 'n') or (Save_Credentials == "no"):
                                 print("Continuing...")
                                 break
@@ -495,6 +494,7 @@ def send_mail(to_address, message, *args):
                         while True:
                             Save_Credentials = input("Would you like to save these credentials for future use? (y/n) ").lower()
                             if (Save_Credentials == 'y') or (Save_Credentials == "yes"):
+########################################################################
                                 # Save credentials as emailaddress:emailpassword
                                 print("Saving to file...")
                                 with open(Full_Path, 'w+') as file:
@@ -503,6 +503,7 @@ def send_mail(to_address, message, *args):
                                     file.close()
                                 print("Saved!")
                                 break
+########################################################################
                             elif (Save_Credentials == 'n') or (Save_Credentials == "no"):
                                 print("Continuing...")
                                 break
@@ -523,6 +524,7 @@ def send_mail(to_address, message, *args):
                 while True:
                     Save_Credentials = input("Would you like to save these credentials for future use? (y/n) ").lower()
                     if (Save_Credentials == 'y') or (Save_Credentials == "yes"):
+########################################################################
                         # Save credentials as emailaddress:emailpassword
                         print("Saving to file...")
                         with open(Full_Path, 'w+') as file:
@@ -531,6 +533,7 @@ def send_mail(to_address, message, *args):
                             file.close()
                         print("Saved!")
                         break
+########################################################################
                     elif (Save_Credentials == 'n') or (Save_Credentials == "no"):
                         print("Continuing...")
                         break
