@@ -17,6 +17,9 @@ from os import path
 from getpass import getpass
 
 
+# pip install "dask[dataframe]"
+
+
 # Function to install packages via pip (aka Pip Cheat)
 def install_library(package):
     # Run pip as a subprocess
@@ -24,7 +27,7 @@ def install_library(package):
     return
 
 # Install pypiwin32 to access windows api services
-install_library("pypiwin32")
+#install_library("pypiwin32")
 
 # Install missing packages
 while True:
@@ -35,12 +38,19 @@ while True:
         import requests
         import win32crypt
         import pandas as pd
+        import dask.dataframe as dd
         from py7zr import unpack_7zarchive
         break
     except Exception as e:
         Missing_Library = str(e).strip('No module named ')
         Missing_Library = Missing_Library.strip("'")
-        install_library(Missing_Library)
+        # Install pypiwin32 to access windows api services
+        if Missing_Library == "win32crypt":
+            install_library("pypiwin32")
+        elif Missing_Library == "binascii":
+            install_library("pypiwin32")
+        else:
+            install_library(Missing_Library)
 
 
 # Print important information to screen
@@ -135,7 +145,7 @@ def run_as_admin(argv=None, debug=False):
     
 
 # Function to export credentials to xml file and encrypt using windows dpapi
-def export_credentials(username, password):
+def export_credentials(username, password, filepath):
     # Encrypt the password using dpapi
     encrypted_password = win32crypt.CryptProtectData(password.encode("utf-16-le"))
     
@@ -158,7 +168,7 @@ def export_credentials(username, password):
 </Objs>"""
     
     # Write encrypted xml data to file
-    file = open("clixml.xml", "w", encoding='utf-16')
+    file = open(filepath, "w", encoding='utf-16')
     file.write(xml)
     file.close()
     
@@ -178,11 +188,8 @@ def import_credentials(filename):
         username = xml.split('<S N="UserName">')[1].split("</S>")[0]
         password_secure_string = xml.split('<SS N="Password">')[1].split("</SS>")[0]
 
-        # CryptUnprotectDate returns two values, description and the password, 
-        # we dont care about the description, so we use _ as variable name.
-        _, decrypted_password_string = win32crypt.CryptUnprotectData(
-            binascii.unhexlify(password_secure_string), None, None, None, 0
-        )
+        # CryptUnprotectData returns two values, description and the password
+        _, decrypted_password_string = win32crypt.CryptUnprotectData(binascii.unhexlify(password_secure_string))#, None, None, None, 0)
 
         # Decode password string to get rid of unknown characters
         decrypted_password_string = decrypted_password_string.decode("utf-16-le")
@@ -205,7 +212,7 @@ def install_tools():
             nuget_check = subprocess.check_output(["powershell.exe", "Find-Package -Name 'nuget' -Force"]).decode("utf-8")
         except subprocess.CalledProcessError:
             # Install NuGet package provider
-            NuGet = subprocess.check_output(["powershell.exe", "Install-PackageProvider -Name 'nuget' -Force"])#; Import-PackageProvider -Name 'nuget'"])
+            NuGet = subprocess.check_output(["powershell.exe", "Install-PackageProvider -Name 'nuget' -Force"])
         
         # Check to see if tools are already installed
         ad_module_check = subprocess.check_output(["powershell.exe", "Get-InstalledModule -Name 'ActiveDirectory'"]).decode("utf-8")
@@ -385,6 +392,7 @@ def check_email(email_list, api_key):
             # Unauthorized - Invalid api key
             elif Response_Status == 401:
                 print("Invalid or Expired api key.")
+                break
             # Forbidden - No user agent specified
             elif Response_Status == 403:
                 print("No user agent specified.")
@@ -431,7 +439,7 @@ def send_mail(to_address, message, *args):
     # Get current working directory
     Current_Directory = os.getcwd()
     # Default text file to save authentication email for sending from
-    Email_File = "authentication_address.txt"
+    Email_File = "email_clixml.xml"
     # Full path to credential file
     Full_Path = str(Current_Directory) + "\\" + str(Email_File)
     # Check to see if file exists, if so, load credentials
@@ -444,9 +452,16 @@ def send_mail(to_address, message, *args):
             # If the length is zero, the variables are empty.
             # Check files to see if there are credentials saved.
             if Authentication == True:
-                print("Save file found. Checking for credentials...")
-                # Load in credentials
-                # Saved as emailaddress:emailpassword
+                print("Save file found for credentials. Decrypting credentials...")
+                # Import credentials from file
+                try:
+                    Sender_Address, Sender_Password = import_credentials(Full_Path)
+                    print("Credentials imported successfully.")
+                except:
+                    print("Failed to import credentials from file.")
+                
+                
+                ''' 
                 with open(Full_Path, 'r') as file:
                     File_Contents = file.readlines()
                     file.close()
@@ -466,14 +481,12 @@ def send_mail(to_address, message, *args):
                         while True:
                             Save_Credentials = input("Would you like to save these credentials for future use? (y/n) ").lower()
                             if (Save_Credentials == 'y') or (Save_Credentials == "yes"):
+########################################################################
                                 # Save credentials as emailaddress:emailpassword
                                 print("Saving to file...")
-                                with open(Full_Path, 'w+') as file:
-                                    Credential_Write = (str(Sender_Address) + ':' + str(Sender_Password))
-                                    file.write(Credential_Write)
-                                    file.close()
-                                print("Saved!")
+                                export_credentials(str(Sender_Address), str(Sender_Password), Full_Path)
                                 break
+########################################################################
                             elif (Save_Credentials == 'n') or (Save_Credentials == "no"):
                                 print("Continuing...")
                                 break
@@ -495,14 +508,12 @@ def send_mail(to_address, message, *args):
                         while True:
                             Save_Credentials = input("Would you like to save these credentials for future use? (y/n) ").lower()
                             if (Save_Credentials == 'y') or (Save_Credentials == "yes"):
+########################################################################
                                 # Save credentials as emailaddress:emailpassword
-                                print("Saving to file...")
-                                with open(Full_Path, 'w+') as file:
-                                    Credential_Write = (str(Sender_Address) + ':' + str(Sender_Password))
-                                    file.write(Credential_Write)
-                                    file.close()
-                                print("Saved!")
+                                print("Saving to file...")     
+                                export_credentials(str(Sender_Address), str(Sender_Password), Full_Path)
                                 break
+########################################################################
                             elif (Save_Credentials == 'n') or (Save_Credentials == "no"):
                                 print("Continuing...")
                                 break
@@ -514,6 +525,8 @@ def send_mail(to_address, message, *args):
                         # Other character entered.
                         print("Invalid response entered. Use y/Y for yes, and n/N for no.")
                 print("Continuing...")
+                '''
+                
             else:
                 print("No previous sender credentials exist.")
                 # Ask user for credentials
@@ -523,14 +536,12 @@ def send_mail(to_address, message, *args):
                 while True:
                     Save_Credentials = input("Would you like to save these credentials for future use? (y/n) ").lower()
                     if (Save_Credentials == 'y') or (Save_Credentials == "yes"):
+########################################################################
                         # Save credentials as emailaddress:emailpassword
                         print("Saving to file...")
-                        with open(Full_Path, 'w+') as file:
-                            Credential_Write = (str(Sender_Address) + ':' + str(Sender_Password))
-                            file.write(Credential_Write)
-                            file.close()
-                        print("Saved!")
+                        export_credentials(str(Sender_Address), str(Sender_Password), Full_Path)
                         break
+########################################################################
                     elif (Save_Credentials == 'n') or (Save_Credentials == "no"):
                         print("Continuing...")
                         break
@@ -653,12 +664,14 @@ def run_normal():
                     while True:
                         Save_Key = input("Would you like to save this key for future use? (y/n) ").lower()
                         if (Save_Key == 'y') or (Save_Key == "yes"):
+##############################################################
                             # Save key
                             print("Saving to file...")
                             with open(Full_Path, 'w+') as file:
                                 file.write(str(Api_Key))
                                 file.close()
                             print("Saved!")
+##############################################################
                             break
                         elif (Save_Key == 'n') or (Save_Key == "no"):
                             print("Continuing...")
@@ -673,12 +686,14 @@ def run_normal():
                 while True:
                     Save_Key = input("Would you like to save this key for future use? (y/n) ").lower()
                     if (Save_Key == 'y') or (Save_Key == "yes"):
+##############################################################
                         # Save key
                         print("Saving to file...")
                         with open(Full_Path, 'w+') as file:
                             file.write(str(Api_Key))
                             file.close()
                         print("Saved!")
+##############################################################
                         break
                     elif (Save_Key == 'n') or (Save_Key == "no"):
                         print("Continuing...")
@@ -770,12 +785,14 @@ def run_normal():
                                     while True:
                                         Save_Email = input("Would you like to save this email for future use? (y/n) ").lower()
                                         if (Save_Email == 'y') or (Save_Email == "yes"):
+##############################################################
                                             # Save email
                                             print("Saving to file...")
                                             with open(Full_Path, 'w+') as file:
                                                 file.write(str(Receiving_Email))
                                                 file.close()
                                             print("Saved!")
+##############################################################
                                             break
                                         elif (Save_Email == 'n') or (Save_Email == "no"):
                                             print("Continuing...")
@@ -793,12 +810,14 @@ def run_normal():
                             while True:
                                 Save_Email = input("Would you like to save this email for future use? (y/n) ").lower()
                                 if (Save_Email == 'y') or (Save_Email == "yes"):
+##############################################################
                                     # Save email
                                     print("Saving to file...")
                                     with open(Full_Path, 'w+') as file:
                                         file.write(str(Receiving_Email))
                                         file.close()
                                     print("Saved!")
+##############################################################
                                     break
                                 elif (Save_Email == 'n') or (Save_Email == "no"):
                                     print("Continuing...")
@@ -814,11 +833,13 @@ def run_normal():
                             Save_Email = input("Would you like to save this email for future use? (y/n) ").lower()
                             if (Save_Email == 'y') or (Save_Email == "yes"):
                                 # Save key
+##############################################################
                                 print("Saving to file...")
                                 with open(Full_Path, 'w+') as file:
                                     file.write(str(Receiving_Email))
                                     file.close()
                                 print("Saved!")
+##############################################################
                                 break
                             elif (Save_Email == 'n') or (Save_Email == "no"):
                                 print("Continuing...")
@@ -1062,9 +1083,45 @@ def check_ntlm_hashes():
             
             while True:
                 try:
-                    # Get admin DC credentials from user
-                    DC_Username = input("Please enter the administrator username for the domain controller: ")
-                    DC_Password = getpass("Please enter the administrator password for the domain controller (Characters will not be printed): ")
+                    # Check files to see if there is a save file.
+                    # Get current working directory
+                    Current_Directory = os.getcwd()
+                    # Default text file to save authentication email for sending from
+                    Creds_File = "creds_clixml.xml"
+                    # Full path to email file
+                    Full_Path = str(Current_Directory) + "\\" + str(Creds_File)
+                    # Check to see if file exists
+                    Creds_File_Existence = path.exists(Full_Path)
+                   
+                    # If file exists, get email
+                    if Creds_File_Existence == True:
+                        print("Save file found for credentials. Decrypting credentials...")
+                        # Import credentials from file
+                        try:
+                            DC_Username, DC_Password = import_credentials(Full_Path)
+                            print("Credentials imported successfully.")
+                        except:
+                            print("Failed to import credentials from file.")
+                    else:
+                        print("No save file found for credentials.")
+                        # Get admin DC credentials from user
+                        DC_Username = input("Please enter the administrator username for the domain controller: ")
+                        DC_Password = getpass("Please enter the administrator password for the domain controller (Characters will not be printed): ")
+                        
+                        # Save if warranted
+                        while True:
+                            Save_Creds = input("Would you like to save these credentials for future use? (y/n) ").lower()
+                            if (Save_Creds == 'y') or (Save_Creds == "yes"):
+                                # Save creds to xml file using dpapi
+                                print("Saving to file...")
+                                export_credentials(DC_Username, DC_Password, Full_Path)
+                                break
+                            elif (Save_Creds == 'n') or (Save_Creds == "no"):
+                                print("Continuing...")
+                                break
+                            else:
+                                # Other character entered.
+                                print("Invalid response entered. Use y/Y for yes, and n/N for no.")
                     
                     # Get current user execution policy, so that we can revert it later
                     User_Policy = subprocess.check_output(["powershell.exe", "Get-ExecutionPolicy -Scope CurrentUser"]).decode("utf-8")
@@ -1110,7 +1167,7 @@ def check_ntlm_hashes():
             else:
                 print("Unknown failure.")
 
-        # Pandas big data related stuff
+        # Pandas/Dask big data related stuff
         # Get start time
         Start_Time = time.time()
 
@@ -1126,7 +1183,7 @@ def check_ntlm_hashes():
         if Hash_Existence == False:
             print("Cannot find Compromised NTLM Hash File.")
             
-            # Download has file if warranted
+            # Download hibp file if warranted
             while True:
                 Download_File = input("Would you like to download HIBP's hash file now? (y/n) ").lower()
                 if (Download_File == 'y') or (Download_File == "yes"):
@@ -1145,118 +1202,90 @@ def check_ntlm_hashes():
             pass
 
         # Get total number of users
-        User_Count = str(len(User_Frame))
-
-        # 613,584,246 lines in hash file
-        # 7 million hashes per gigabyte of ram used seems to be a safe amount
-        # Utilize 8% of unused memory (Figure out how many hashes that allows for)
-        # Get total machine memory and convert to gigabytes
-        #Bytes = psutil.virtual_memory().total
-        #print("Total memory:", Gigs)
-
-        # Get total memory used
-        #Bytes = psutil.virtual_memory().used
-
-        #print("Total memory used:", Gigs)
+        User_Count = str(User_Frame.shape[0])
+        print("Total number of users found in domain: {}".format(User_Count))
 
         # Get total memory free
-        Bytes = psutil.virtual_memory().free
-        #print("Total memory free:", Gigs)
+        Bytes = psutil.virtual_memory().available
 
         # Calculate memory usage of dataframe and subtract that from the allocated memory (in bytes)
-        #User_Frame_Bytes = User_Frame.memory_usage(index=True, deep=True).sum()
-        #Bytes = Bytes - User_Frame_Bytes
+        User_Frame_Bytes = User_Frame.memory_usage(index=True, deep=True).sum()
+        Bytes -= User_Frame_Bytes
 
-        # Convert bytes to gigs
-        Gigs = Bytes/1073741824
-
-        # Only allow 80% of memory to be used by python
-        Allowed_Usage = 0.8
-
-        # Get number of gigabytes allowed
-        Allowed_Gigs = Allowed_Usage * Gigs
-
-        # Determine number of hashes that can be read into dataframe at once
-        Split_Limit = round(Allowed_Gigs * 7000000)
+        # Only allow 75% of memory to be used by python
+        Allowed_Usage = 0.75
 
         # Offset starting point, so that old hashes aren't checked again
-        Start_Offset = 0
+        partition = 0
 
         # Create final dataframe of users that have compromised passwords
         Compromised_Users = pd.DataFrame()
 
-        # Compare each piece of the file against the user hashes
-        while True:
-            if len(User_Frame) > 0:
-                print("Reading in portion of compromised hash file...")
+        # Get number of gigabytes allowed
+        # Seems tables are made when doing calculations on a dataframe.
+        # These are at least the same size as the dataframe in question.      
+        # Determine number of hashes that can be read into dataframe at once
+        Split_Limit = int(Allowed_Usage * (Bytes/1000000)/6)
+        Split_Limit = str(Split_Limit) + "MB"
+        print("Partition size limit(MB):", Split_Limit)
 
-                # Create a dataframe of compromised hashes (This reads everything into memory...)
-                # With format Hash:Number
-                Hash_Frame = pd.read_csv(Full_Path, sep=':', skiprows=Start_Offset, nrows=Split_Limit, header=None, index_col=False)
-
-                if len(Hash_Frame) == Split_Limit:
-                    print("Checking against compromised hashes...")
-                    # Check to see if user hashes appear in compromised hashes
-                    # Returns a new dataframe containing True or False for each user
-                    Overlap = User_Frame[1].isin(Hash_Frame[0])
-
-                    # Make a list of compromised users by index
-                    Drop_Index = []
-
-                    # Return users with compromised passwords
-                    i = 0
-                    while i < len(Overlap):
-                        if Overlap[i] == True:
-                            # Print each row, column 0
-                            print(" * User " + str(User_Frame.iloc[i][0]) + "'s password has been identified as compromised.")
-                            Compromised_Users = Compromised_Users.append([User_Frame.iloc[i][0]])
-                            Drop_Index.append(i)
-                        i += 1
-
-                    # Drop those usernames from the dataframe
-                    User_Frame.drop(Drop_Index, inplace=True)
-
-                    # Reset index in dataframe
-                    User_Frame.reset_index(drop=True, inplace=True)
-                    
-                    # Start where we left off
-                    Start_Offset += Split_Limit
-                    
-                    # Delete dataframe to remove it from memory, and make room for new dataframe
-                    # This is in an effort to keep from using massive amounts of memory,
-                    # as python does not normally release memory back to the OS
-                    del Hash_Frame
-                    gc.collect()
-
-                    print("Portion done, continuing...")
-                        
-                # Run once more, then quit
-                else:
-                    print("Checking against compromised hashes...")
-                    # Check to see if user hashes appear in compromised hashes
-                    # Returns a new dataframe containing True or False for each user
-                    Overlap = User_Frame[1].isin(Hash_Frame[0])
-
-                    # Return users with compromised passwords
-                    i = 0
-                    while i < len(Overlap):
-                        if Overlap[i] == True:
-                            # Print each row, column 0
-                            print("User " + str(User_Frame.iloc[i][0]) + "'s password has been identified as compromised.")
-                            Compromised_Users = Compromised_Users.append([User_Frame.iloc[i][0]])
-                        i += 1
-                        
-                    # Delete dataframe to remove it from memory, and make room for new dataframe
-                    # This is in an effort to keep from using massive amounts of memory,
-                    # as python does not normally release memory back to the OS
-                    del Hash_Frame
-                    gc.collect()
+        # Read in the HIBP hash dataset in pieces using dask.
+        # Each piece is a separate dataframe, denoted by a partition number.
+        Hash_Frame = dd.read_csv(Full_Path, sep=':', blocksize=Split_Limit, header=None, dtype={0:"string", 1:"int64"})
+        
+        # Calculate the total number of partitions
+        total_partitions = int(Hash_Frame.npartitions)
+        print("Total number of partitions:", Hash_Frame.npartitions)
+        
+        # Run as long as there is user data
+        if int(User_Frame.shape[0]) > 0:            
+            # Iterate through each partition
+            j = 0 
+            while j < total_partitions:
+                # Print statement at the beginning of each iteration
+                Elapsed_Time = (time.time() - Start_Time)
+                Elapsed_Time = round(Elapsed_Time, 2)
+                print("Reading in partition {} of {}. Elapsed time: {}".format(j+1, total_partitions, Elapsed_Time))
+            
+                Current_Frame = Hash_Frame.partitions[j]
+                print("Number of hashes in this partition: {}".format(Current_Frame.shape[0].compute()))
                 
-                    print("Portion done, continuing...")  
-                    break
-            else:
-                print("All user passwords have been compromised. Exiting...")
-                break
+                # Convert dask dataframe to pandas dataframe
+                Current_Frame = Current_Frame.compute()
+            
+                # Check to see if user hashes appear in compromised hashes
+                # Returns a new dataframe containing True or False for each user
+                Overlap = User_Frame[1].isin(Current_Frame[0])
+
+                # Make a list of compromised users by index
+                Drop_Index = []
+
+                # Return users with compromised passwords
+                i = 0
+                while i < len(Overlap):
+                    if Overlap[i] == True:
+                        # Print each row, column 0
+                        print(" * User " + str(User_Frame.iloc[i][0]) + "'s password has been identified as compromised.")
+                        Compromised_Users = Compromised_Users.append([User_Frame.iloc[i][0]])
+                        Drop_Index.append(i)
+                    i += 1
+
+                # Drop those usernames from the dataframe
+                User_Frame.drop(Drop_Index, inplace=True)
+                
+                # Delete from memory
+                del Overlap
+                del Drop_Index
+                del Current_Frame
+                gc.collect()
+
+                # Reset index in dataframe
+                User_Frame.reset_index(drop=True, inplace=True)
+            
+                j += 1
+            
+        else:
+            print("All user passwords have been compromised. Exiting...")
                 
         # Set execution policy back to what it was
         Policy_Revert = subprocess.check_output(["powershell.exe", "Set-ExecutionPolicy '" + str(User_Policy) + "' -Scope CurrentUser -Force"])
@@ -1265,7 +1294,8 @@ def check_ntlm_hashes():
         End_Time = time.time()
         Elapsed_Time = (End_Time - Start_Time)
         Elapsed_Time = round(Elapsed_Time, 2)
-        print("\nTotal elapsed time taken to check hashes: " + str(Elapsed_Time) + " (seconds)")
+        Elapsed_Time = int(Elapsed_Time)/60
+        print("\nTotal elapsed time taken to check hashes: " + str(Elapsed_Time) + " (Minutes)")
 
         # Print total number of compromises
         print(str(len(Compromised_Users)) + " out of " + User_Count + " users have compromised passwords.")
@@ -1316,48 +1346,56 @@ def print_help():
 def main(args):
     # Sort through arguments given in the command line    
     if len(args) >= 1:
-        if '-h' in args:
-            # Print help screen
-            print_help()
-        elif "--help" in args:
-            # Print help screen
-            print_help()
-        elif '-d' in args:
-            # Download and unzip HIBP file
-            # HIBP hash file, ordered by hash
-            download_and_unzip()
-        elif "--download" in args:
-            # Download and unzip HIBP file
-            download_and_unzip()
-        elif '-e' in args:
-            if '-A' in args:
-                # Run script without user input
-                # This has to be run as admin.
-                # Results wil be automatically emailed.
-                # Credentials must be hard coded, or saved in file.
-                run_automated()
+        i = 0
+        while i < len(args):
+            # Look at each argument fed to the script
+            current_arg = str(args[i])
+    
+            if '-h' in current_arg:
+                # Print help screen
+                print_help()
+            elif "--help" in current_arg:
+                # Print help screen
+                print_help()
+            elif '-d' in current_arg:
+                # Download and unzip HIBP file
+                # HIBP hash file, ordered by hash
+                download_and_unzip()
+            elif "--download" in current_arg:
+                # Download and unzip HIBP file
+                download_and_unzip()
+            elif '-e' in current_arg:
+                if '-A' in current_arg:
+                    # Run script without user input
+                    # This has to be run as admin.
+                    # Results wil be automatically emailed.
+                    # Credentials must be hard coded, or saved in file.
+                    run_automated()
+                else:
+                    # Run script as normal
+                    run_normal()
+            elif "--email" in current_arg:
+                if '-A' in current_arg:
+                    # Run script without user input
+                    # This has to be run as admin.
+                    # Results wil be automatically emailed.
+                    # Credentials must be hard coded, or saved in file.
+                    run_automated()
+                else:
+                    # Run script as normal
+                    run_normal()
+            elif '-n' in current_arg:
+                # Check NTLM hashes
+                check_ntlm_hashes()
+            elif "--ntlm" in current_arg:
+                # Check NTLM hashes
+                check_ntlm_hashes()
             else:
-                # Run script as normal
-                run_normal()
-        elif "--email" in args:
-            if '-A' in args:
-                # Run script without user input
-                # This has to be run as admin.
-                # Results wil be automatically emailed.
-                # Credentials must be hard coded, or saved in file.
-                run_automated()
-            else:
-                # Run script as normal
-                run_normal()
-        elif '-n' in args:
-            # Check NTLM hashes
-            check_ntlm_hashes()
-        elif "--ntlm" in args:
-            # Check NTLM hashes
-            check_ntlm_hashes()
-        else:
-            print("Unknown arguement given.")
-            print("Use -h or --help command for more help.")
+                print("Unknown arguement given.")
+                print("Use -h or --help command for more help.")
+                break
+            i += 1
+            
     # If no arguments are given, continue as if script has never been run
     else:
         # Get current admin state
@@ -1366,7 +1404,7 @@ def main(args):
         if Admin_State is True:
             # Run script as normal with all options
             run_normal()
-            #download_and_unzip()
+            download_and_unzip()
             check_ntlm_hashes()
         elif Admin_State is None:
             print('Elevating privleges and moving to admin window.')
