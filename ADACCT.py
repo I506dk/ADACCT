@@ -194,13 +194,18 @@ def export_credentials(username, password, filepath):
     
     # Write encrypted xml data to file
     try:
-        file = open(filepath, "w", encoding='utf-16')
-        file.write(xml)
-        file.close()
+        export_file = open(filepath, "w", encoding='utf-16')
+        export_file.write(xml)
+        export_file.close()
     except Exception:
         # If error, close tht file in case it was opened
         print("Failed to open file: {}".format("filename"))
-        #file.close()
+        
+        # Attempt to close file if it was opened
+        try:
+            export_file.close()
+        except Exception:
+            print("No file to close. Continuing...")
     
     # Print ending message
     print("Credentials saved to: {}".format(filepath))
@@ -213,22 +218,36 @@ def export_credentials(username, password, filepath):
 def import_credentials(filename):
     # Import file and get credentials
     try:
-        with open(filename, 'r', encoding='utf-16') as f:
-            xml = f.read()
+        import_file = open(filename, 'r', encoding='utf-16')
+        xml = import_file.read() 
 
-            # Extract username and password from the XML since thats all we care about.
-            username = xml.split('<S N="UserName">')[1].split("</S>")[0]
-            password_secure_string = xml.split('<SS N="Password">')[1].split("</SS>")[0]
+        # Extract username and password from the XML since thats all we care about.
+        username = xml.split('<S N="UserName">')[1].split("</S>")[0]
+        password_secure_string = xml.split('<SS N="Password">')[1].split("</SS>")[0]
 
-            # CryptUnprotectData returns two values, description and the password
-            _, decrypted_password_string = win32crypt.CryptUnprotectData(binascii.unhexlify(password_secure_string))
+        # CryptUnprotectData returns two values, description and the password
+        _, decrypted_password_string = win32crypt.CryptUnprotectData(binascii.unhexlify(password_secure_string))
 
-            # Decode password string to get rid of unknown characters
-            decrypted_password_string = decrypted_password_string.decode("utf-16-le")
+        # Decode password string to get rid of unknown characters
+        decrypted_password_string = decrypted_password_string.decode("utf-16-le")
+        import_file.close()
+        
+        return username, decrypted_password_string
+        
     except Exception:
         print("Failed to open file: {}".format("filename"))
+        
+        # Attempt to close file if it was opened
+        try:
+            import_file.close()
+        except Exception:
+            print("No file to close. Continuing...")
+        
+        return None
 
-        return username, decrypted_password_string
+    # Print ending message
+    
+    #return username, decrypted_password_string
 
 
 # Function to install active directory tools via powershell
@@ -294,7 +313,7 @@ def install_tools():
                 pass
             if DS_Exists == False:
                 # Install DSInternals
-                powershell = subprocess.check_output(["powershell.exe", "Install-Module -Name DSInternals -Force"])
+                subprocess.check_output(["powershell.exe", "Install-Module -Name DSInternals -Force"])
             else:
                 # They are already installed
                 pass
@@ -513,12 +532,11 @@ def send_mail(to_address, message, *args):
                         # Other character entered.
                         print("Invalid response entered. Use y/Y for yes, and n/N for no.")
                 print("Continuing...")
-                del Save_Credentials
         else:
             # Both sender fields have atleast something in them.
-            # Try those credentials. If there is an authentication error,
-            # Ask to re-enter credentials
-            print("Email credentials found hardcoded in system.")
+            print("Email credentials found hardcoded in system. Continuing...")
+            
+            '''
             while True:
                 Continue = input("Continue using " + str(Sender_Address) + "? (y/n) ").lower()
                 if (Continue == 'y') or (Continue == "yes"):
@@ -542,8 +560,8 @@ def send_mail(to_address, message, *args):
                     else:
                         # Other character entered.
                         print("Invalid response entered. Use y/Y for yes, and n/N for no.")
-            print("Continuing...")
-            del Save_Credentials
+            '''
+            #print("Continuing...")
     else:
         # Pull from file and continue (this assumes they exist)
         # Import credentials from file
