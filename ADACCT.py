@@ -12,8 +12,6 @@ import shutil
 import ctypes
 import smtplib
 import subprocess
-import urllib.parse
-from os import path
 from getpass import getpass
 
 
@@ -199,9 +197,10 @@ def export_credentials(username, password, filepath):
         file = open(filepath, "w", encoding='utf-16')
         file.write(xml)
         file.close()
-    except:
+    except Exception:
         # If error, close tht file in case it was opened
-        file.close()
+        print("Failed to open file: {}".format("filename"))
+        #file.close()
     
     # Print ending message
     print("Credentials saved to: {}".format(filepath))
@@ -213,18 +212,21 @@ def export_credentials(username, password, filepath):
 # An exact adaptation of the powershell commandlet Import-Clixml
 def import_credentials(filename):
     # Import file and get credentials
-    with open(filename, 'r', encoding='utf-16') as f:
-        xml = f.read()
+    try:
+        with open(filename, 'r', encoding='utf-16') as f:
+            xml = f.read()
 
-        # Extract username and password from the XML since thats all we care about.
-        username = xml.split('<S N="UserName">')[1].split("</S>")[0]
-        password_secure_string = xml.split('<SS N="Password">')[1].split("</SS>")[0]
+            # Extract username and password from the XML since thats all we care about.
+            username = xml.split('<S N="UserName">')[1].split("</S>")[0]
+            password_secure_string = xml.split('<SS N="Password">')[1].split("</SS>")[0]
 
-        # CryptUnprotectData returns two values, description and the password
-        _, decrypted_password_string = win32crypt.CryptUnprotectData(binascii.unhexlify(password_secure_string))
+            # CryptUnprotectData returns two values, description and the password
+            _, decrypted_password_string = win32crypt.CryptUnprotectData(binascii.unhexlify(password_secure_string))
 
-        # Decode password string to get rid of unknown characters
-        decrypted_password_string = decrypted_password_string.decode("utf-16-le")
+            # Decode password string to get rid of unknown characters
+            decrypted_password_string = decrypted_password_string.decode("utf-16-le")
+    except Exception:
+        print("Failed to open file: {}".format("filename"))
 
         return username, decrypted_password_string
 
@@ -241,10 +243,10 @@ def install_tools():
         try: 
             # Check to see if the NuGet package is installed
             # Will return an error if it can't find it
-            nuget_check = subprocess.check_output(["powershell.exe", "Find-Package -Name 'nuget' -Force"]).decode("utf-8")
+            subprocess.check_output(["powershell.exe", "Find-Package -Name 'nuget' -Force"]).decode("utf-8")
         except subprocess.CalledProcessError:
             # Install NuGet package provider
-            NuGet = subprocess.check_output(["powershell.exe", "Install-PackageProvider -Name 'nuget' -Force"])#; Import-PackageProvider -Name 'nuget'"])
+            subprocess.check_output(["powershell.exe", "Install-PackageProvider -Name 'nuget' -Force"])#; Import-PackageProvider -Name 'nuget'"])
         
         # Check to see if tools are already installed
         ad_module_check = subprocess.check_output(["powershell.exe", "Get-InstalledModule -Name 'ActiveDirectory'"]).decode("utf-8")
@@ -271,13 +273,13 @@ def install_tools():
         if os_check == '1':
             if AD_Exists == False:
                 # Install AD Tools, with specific version
-                powershell = subprocess.check_output(["powershell.exe", "Add-WindowsCapability -Online -Name 'Rsat.ActiveDirectory.DS-LDS.Tools~~~~0.0.1.0'"])
+                subprocess.check_output(["powershell.exe", "Add-WindowsCapability -Online -Name 'Rsat.ActiveDirectory.DS-LDS.Tools~~~~0.0.1.0'"])
             else:
                 # They are already installed
                 pass
             if DS_Exists == False:
                 # Install DSInternals
-                powershell = subprocess.check_output(["powershell.exe", "Install-Module -Name DSInternals -Force"])
+                subprocess.check_output(["powershell.exe", "Install-Module -Name DSInternals -Force"])
             else:
                 # They are already installed
                 pass
@@ -285,8 +287,8 @@ def install_tools():
         elif (os_check == '2') or (os_check == '3'):
             if AD_Exists == False:
                 # These two work, but only on windows server editions
-                powershell_install = subprocess.check_output(["powershell.exe", "Import-Module ServerManager"])
-                powershell_install = subprocess.check_output(["powershell.exe", "Add-WindowsFeature -Name 'RSAT-AD-PowerShell' -IncludeAllSubFeature"])
+                subprocess.check_output(["powershell.exe", "Import-Module ServerManager"])
+                subprocess.check_output(["powershell.exe", "Add-WindowsFeature -Name 'RSAT-AD-PowerShell' -IncludeAllSubFeature"])
             else:
                 # They are already installed
                 pass
@@ -300,13 +302,13 @@ def install_tools():
         else:
             if AD_Exists == False:
                 # Install AD Tools, with specific version
-                powershell = subprocess.check_output(["powershell.exe", "Add-WindowsCapability -Online -Name 'Rsat.ActiveDirectory.DS-LDS.Tools~~~~0.0.1.0'"])
+                subprocess.check_output(["powershell.exe", "Add-WindowsCapability -Online -Name 'Rsat.ActiveDirectory.DS-LDS.Tools~~~~0.0.1.0'"])
             else:
                 # They are already installed
                 pass
             if DS_Exists == False:
                 # Install DSInternals
-                powershell = subprocess.check_output(["powershell.exe", "Install-Module -Name DSInternals -Force"])
+                subprocess.check_output(["powershell.exe", "Install-Module -Name DSInternals -Force"])
             else:
                 # They are already installed
                 pass
@@ -475,7 +477,7 @@ def send_mail(to_address, message, *args):
     # Full path to credential file
     Full_Path = str(Current_Directory) + "\\" + str(Email_File)
     # Check to see if file exists, if so, load credentials
-    Authentication = path.exists(Full_Path)
+    Authentication = os.path.exists(Full_Path)
    
     if Auto_Bit == 0:
         # Check to see if sender credentials are hard coded above
@@ -489,7 +491,7 @@ def send_mail(to_address, message, *args):
                 try:
                     Sender_Address, Sender_Password = import_credentials(Full_Path)
                     print("Credentials imported successfully.")
-                except:
+                except Exception:
                     print("Failed to import credentials from file.")                
             else:
                 print("No previous sender credentials exist.")
@@ -548,7 +550,7 @@ def send_mail(to_address, message, *args):
         try:
             Sender_Address, Sender_Password = import_credentials(Full_Path)
             print("Credentials imported successfully.")
-        except:
+        except Exception:
             print("Failed to import credentials from file.")
        
     # Email address to send to
@@ -678,7 +680,7 @@ def check_ntlm_hashes():
                     # Full path to email file
                     Full_Path = str(Current_Directory) + "\\" + str(Creds_File)
                     # Check to see if file exists
-                    Creds_File_Existence = path.exists(Full_Path)
+                    Creds_File_Existence = os.path.exists(Full_Path)
                    
                     # If file exists, get email
                     if Creds_File_Existence == True:
@@ -687,7 +689,7 @@ def check_ntlm_hashes():
                         try:
                             DC_Username, DC_Password = import_credentials(Full_Path)
                             print("Credentials imported successfully.")
-                        except:
+                        except Exception:
                             print("Failed to import credentials from file.")
                     else:
                         print("No save file found for credentials.")
@@ -717,10 +719,12 @@ def check_ntlm_hashes():
                     User_Policy = User_Policy.replace('\n', '')
                     
                     # Allow scripting for the current process
-                    powershell_set_exec = subprocess.check_output(["powershell.exe", "Set-ExecutionPolicy Bypass -Scope CurrentUser -Force"])
+                    #powershell_set_exec = 
+                    subprocess.check_output(["powershell.exe", "Set-ExecutionPolicy Bypass -Scope CurrentUser -Force"])
                     
                     # Import DSInternals module
-                    powershell_ds = subprocess.check_output(["powershell.exe", "Import-Module DSInternals"])
+                    #powershell_ds = 
+                    subprocess.check_output(["powershell.exe", "Import-Module DSInternals"])
                         
                     # Get all NTLM hashes
                     hash_list = subprocess.check_output(["powershell.exe", "$Username = '" + str(DC_Username) + "'; $Password = ConvertTo-SecureString -String '" + str(DC_Password) + "' -AsPlainText -Force; $Credentials = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $Username, $Password; Get-ADReplAccount -all -Server '" + str(hostname) + "' -Credential $Credentials | Format-Custom -View HashcatNT"])
@@ -762,7 +766,7 @@ def check_ntlm_hashes():
         Full_Path = str(Current_Directory) + "\\" + str(Hash_File)
 
         # Check if hash file exists
-        Hash_Existence = path.exists(Full_Path)
+        Hash_Existence = os.path.exists(Full_Path)
         if Hash_Existence == False:
             print("Cannot find Compromised NTLM Hash File.")
             # Download hibp file if warranted
@@ -800,10 +804,7 @@ def check_ntlm_hashes():
 
         # Only allow 75% of memory to be used by python
         Allowed_Usage = 0.75
-
-        # Offset starting point, so that old hashes aren't checked again
-        partition = 0
-
+        
         # Create final dataframe of users that have compromised passwords
         Compromised_Users = pd.DataFrame(columns=["Username"])
 
@@ -873,7 +874,8 @@ def check_ntlm_hashes():
             print("All user passwords have been compromised. Exiting...")
                 
         # Set execution policy back to what it was
-        Policy_Revert = subprocess.check_output(["powershell.exe", "Set-ExecutionPolicy '" + str(User_Policy) + "' -Scope CurrentUser -Force"])
+        #Policy_Revert = 
+        subprocess.check_output(["powershell.exe", "Set-ExecutionPolicy '" + str(User_Policy) + "' -Scope CurrentUser -Force"])
 
         # Get time elapsed
         End_Time = time.time()
@@ -936,7 +938,7 @@ def run_normal():
             # Full path to credential file
             Full_Path = str(Current_Directory) + "\\" + str(Api_File)
             # Check to see if file exists
-            Api_File_Existence = path.exists(Full_Path)
+            Api_File_Existence = os.path.exists(Full_Path)
            
             # If file exists, get key
             if Api_File_Existence == True:
@@ -945,7 +947,7 @@ def run_normal():
                 try:
                     _, Api_Key = import_credentials(Full_Path)
                     print("Credentials imported successfully.")
-                except:
+                except Exception:
                     print("Failed to import credentials from file.")                          
             # No key file found
             else:
@@ -1020,7 +1022,7 @@ def run_normal():
                     # Full path to email file
                     Full_Path = str(Current_Directory) + "\\" + str(Receive_File)
                     # Check to see if file exists
-                    Receive_File_Existence = path.exists(Full_Path)
+                    Receive_File_Existence = os.path.exists(Full_Path)
                    
                     # If file exists, get email
                     if Receive_File_Existence == True:
@@ -1127,17 +1129,14 @@ def run_automated():
             # Full path to credential file
             Full_Path = str(Current_Directory) + "\\" + str(Api_File)
             # Check to see if file exists
-            Api_File_Existence = path.exists(Full_Path)
+            Api_File_Existence = os.path.exists(Full_Path)
            
             # If file exists, get key
             if Api_File_Existence == True:
                 print("Save file found. Decrypting key...")
                 # Import key from file
-                try:
-                    _, Api_Key = import_credentials(Full_Path)
-                    print("Credentials imported successfully.")
-                except:
-                    print("Failed to import credentials from file.")                          
+                _, Api_Key = import_credentials(Full_Path)
+                print("Credentials imported successfully.")                     
             # No key file found
             else:
                 # Fail
@@ -1193,7 +1192,7 @@ def run_automated():
         # Full path to email file
         Full_Path = str(Current_Directory) + "\\" + str(Receive_File)
         # Check to see if file exists
-        Receive_File_Existence = path.exists(Full_Path)
+        Receive_File_Existence = os.path.exists(Full_Path)
 
         
         # Check to see if email was hardcoded
