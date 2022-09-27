@@ -5,6 +5,9 @@
 #### A Python script to check Active Directory User emails and NTLM password hashes for compromise against HaveIBeenPwned's database
 #### Prounounced /ˈadikt/ - an enthusiastic devotee of a specified thing or activity.
 
+![CodeQL](https://github.com/I506dk/ADACCT/workflows/CodeQL/badge.svg)
+![Known Vulnerabilities](https://snyk.io/test/github/I506dk/ADACCT/badge.svg)
+
 ## Features
 - Pulls all user's email addresses from the Active Directory
 - Uses HaveIBeenPwned's api to check each email address for compromise
@@ -15,7 +18,6 @@
 - Option to save API key, Email address credentials, and Domain Admin credentials to file using Windows DPAPI
 
 ## Dependencies 
-[![Known Vulnerabilities](https://snyk.io/test/github/I506dk/ADACCT/badge.svg)](https://snyk.io/test/github/I506dk/ADACCT)
 - [Psutil](https://pypi.org/project/psutil/) - Cross-platform lib for process and system monitoring in Python
 - [Requests](https://pypi.org/project/requests/) - Python HTTP for Humans
 - [PypiWin32](https://pypi.org/project/pywin32/) - Python for Window Extensions
