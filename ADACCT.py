@@ -507,6 +507,7 @@ def send_mail(to_address, message, *args):
                         # Other character entered.
                         print("Invalid response entered. Use y/Y for yes, and n/N for no.")
                 print("Continuing...")
+                del Save_Credentials
         else:
             # Both sender fields have atleast something in them.
             # Try those credentials. If there is an authentication error,
@@ -537,6 +538,7 @@ def send_mail(to_address, message, *args):
                         # Other character entered.
                         print("Invalid response entered. Use y/Y for yes, and n/N for no.")
             print("Continuing...")
+            del Save_Credentials
     else:
         # Pull from file and continue (this assumes they exist)
         # Import credentials from file
@@ -713,10 +715,10 @@ def check_ntlm_hashes():
                     User_Policy = User_Policy.replace('\n', '')
                     
                     # Allow scripting for the current process
-                    powershell = subprocess.check_output(["powershell.exe", "Set-ExecutionPolicy Bypass -Scope CurrentUser -Force"])
+                    powershell_set_exec = subprocess.check_output(["powershell.exe", "Set-ExecutionPolicy Bypass -Scope CurrentUser -Force"])
                     
                     # Import DSInternals module
-                    powershell = subprocess.check_output(["powershell.exe", "Import-Module DSInternals"])
+                    powershell_ds = subprocess.check_output(["powershell.exe", "Import-Module DSInternals"])
                         
                     # Get all NTLM hashes
                     hash_list = subprocess.check_output(["powershell.exe", "$Username = '" + str(DC_Username) + "'; $Password = ConvertTo-SecureString -String '" + str(DC_Password) + "' -AsPlainText -Force; $Credentials = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $Username, $Password; Get-ADReplAccount -all -Server '" + str(hostname) + "' -Credential $Credentials | Format-Custom -View HashcatNT"])
@@ -749,11 +751,7 @@ def check_ntlm_hashes():
                 quit()
             else:
                 print("Unknown failure.")
-
-        # Pandas/Dask big data related stuff
-        # Get start time
-        Start_Time = time.time()
-
+                
         # Get current working directory
         Current_Directory = os.getcwd()
         # Default text file for compromised hashes (Find a way in the future to not card code this)
@@ -782,6 +780,10 @@ def check_ntlm_hashes():
                     print("Invalid response entered. Use y/Y for yes, and n/N for no.")
         else:
             pass
+            
+        # Pandas/Dask big data related stuff
+        # Get start time
+        Start_Time = time.time()
 
         # Get total number of users
         User_Count = str(User_Frame.shape[0])
