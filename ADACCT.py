@@ -43,6 +43,11 @@ while True:
         # Install pypiwin32 to access windows api services
         if Missing_Library == "win32crypt":
             install_library("pypiwin32")
+<<<<<<< Updated upstream
+=======
+        elif Missing_Library == "binascii":
+            install_library("pypiwin32")
+>>>>>>> Stashed changes
         # Install the dataframe specific portion of dask
         elif Missing_Library == "dask":
             install_library("dask[dataframe]")
@@ -1006,6 +1011,10 @@ def run_normal():
                         print("Save file found. Importing email address...")
                         # Load in email
                         Receiving_Email, _ = import_credentials(Full_Path)
+<<<<<<< Updated upstream
+=======
+                        print("Credentials imported successfully.")
+>>>>>>> Stashed changes
                         
                         while True:
                             Continue = input("Continue using " + str(Receiving_Email) + "? (y/n) ").lower()
@@ -1174,6 +1183,10 @@ def run_automated():
                 print("Save file found. Importing email address...")
                 # Load in email
                 Receiving_Email, _ = import_credentials(Full_Path)
+<<<<<<< Updated upstream
+=======
+                print("Credentials imported successfully.")
+>>>>>>> Stashed changes
             # No key file found
             else:
                 # Fail
@@ -1184,6 +1197,10 @@ def run_automated():
                 print("Save file found. Importing email address...")
                 # Load in email
                 Receiving_Email, _ = import_credentials(Full_Path)
+<<<<<<< Updated upstream
+=======
+                print("Credentials imported successfully.")
+>>>>>>> Stashed changes
             # No key file found
             else:
                 # Fail
