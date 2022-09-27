@@ -71,6 +71,22 @@ pip install dask[dataframe]
 pip install py7zr
 ```
 
+## System Requirements
+These were the system requirements during testing, and the script can likely run on less, however this will affect script run time.
+
+**CPU**
+- At least 2 vCpus
+  - Dask.dataframe works in parallel to read in hashes from the csv file.
+
+**Memory**
+- At least 8gb of system memory
+  - All dataframes are read into memory for processing.
+  - Dataframes will get split based on the amount of free memory.
+
+**Disk Space**
+- At least 30gb disk space
+  - The HaveIBeenPwned hash file decompressed takes up almost 22gb of disk space
+
 ## Usage
 To run ADACCT for the first time:
 ```
@@ -113,6 +129,8 @@ REMINDER - You can use multiple arguments as long as they aren't -h or --help (T
 - [x] Find a way to protect saved API key and Email credentials (Everything is saved using windows dpapi)
 - [ ] Add option to specify location of Hash File (Defaults to the same directory the script is in)
 - [ ] Implement a Trusted Execution Environment to prevent memory dumping attacks
+- [ ] Create minimum privileges require for domain object data replication
+- [ ] Implement a pip cleanup to remove packages or libraries installed by the script
 - [ ] Add support for new Active Directory Checks
 
 
