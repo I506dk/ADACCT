@@ -804,7 +804,7 @@ def check_ntlm_hashes():
         partition = 0
 
         # Create final dataframe of users that have compromised passwords
-        Compromised_Users = pd.DataFrame()
+        Compromised_Users = pd.DataFrame(columns=["Username"])
 
         # Get number of megabytes to allocate to dataframe
         Split_Limit = int(Allowed_Usage * (Bytes/1000000)/6)
@@ -848,7 +848,9 @@ def check_ntlm_hashes():
                     if Overlap[i] == True:
                         # Print each row, column 0
                         print(" * User " + str(User_Frame.iloc[i][0]) + "'s password has been identified as compromised.")
-                        Compromised_Users = Compromised_Users.append([User_Frame.iloc[i][0]])
+                        # Add compromised users to dataframe
+                        comp_index = int(Compromised_Users.shape[0])
+                        Compromised_Users.loc[comp_index] = User_Frame.iloc[i][0]
                         Drop_Index.append(i)
                     i += 1
 
@@ -883,7 +885,7 @@ def check_ntlm_hashes():
         print(str(len(Compromised_Users)) + " out of " + User_Count + " users have compromised passwords.")
         
         # Save compromised users as csv file (only usernames in this file)
-        Compromised_Users.to_csv('Compromised_Users.csv', index=False)
+        Compromised_Users.to_csv('Compromised_Users.csv', index=False, header=["Username"])
         
         # Exit
         input("Done. Press enter to exit...")
