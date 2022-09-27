@@ -167,7 +167,7 @@ def run_as_admin(argv=None, debug=False):
     if int(ret) <= 32:
         return False
         
-    return
+    return None
     
 
 # Function to export credentials to xml file and encrypt using windows dpapi
@@ -195,9 +195,13 @@ def export_credentials(username, password, filepath):
 </Objs>"""
     
     # Write encrypted xml data to file
-    file = open(filepath, "w", encoding='utf-16')
-    file.write(xml)
-    file.close()
+    try:
+        file = open(filepath, "w", encoding='utf-16')
+        file.write(xml)
+        file.close()
+    except:
+        # If error, close tht file in case it was opened
+        file.close()
     
     # Print ending message
     print("Credentials saved to: {}".format(filepath))
@@ -517,7 +521,6 @@ def send_mail(to_address, message, *args):
                 Continue = input("Continue using " + str(Sender_Address) + "? (y/n) ").lower()
                 if (Continue == 'y') or (Continue == "yes"):
                     # Continue using credentials already found.
-                    pass
                     break
                 elif (Continue == 'n') or (Continue == "no"):
                     # Don't use hardcoded credentials. Ask for new ones.
@@ -617,8 +620,7 @@ def download_and_unzip():
         os.remove(File_Name)
     else:
         # Silently pass if there is no file to delete (Shouldn't ever be the case)
-        print("Nothing here")
-        pass
+        print("No file to delete. Continuing...")
     
     # Get end time and elapsed time of download
     Download_End = time.time()
@@ -1031,7 +1033,6 @@ def run_normal():
                             Continue = input("Continue using " + str(Receiving_Email) + "? (y/n) ").lower()
                             if (Continue == 'y') or (Continue == "yes"):
                                 # Continue using credentials already found.
-                                pass
                                 break
                             else:
                                 # If file is empty, ask for email
