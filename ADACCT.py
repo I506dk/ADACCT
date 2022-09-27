@@ -738,7 +738,7 @@ def check_ntlm_hashes():
                     
                     # Powershell returns hashes in all lowercase
                     # HIBP gives us the hashes in all caps
-                    User_Frame.iloc[:][1] = User_Frame.iloc[:][1].str.upper()
+                    User_Frame[1] = User_Frame[1].str.upper()
                     
                     print("Hashes replicated. Checking against database...")
                     break
@@ -813,7 +813,7 @@ def check_ntlm_hashes():
 
         # Read in the HIBP hash dataset in pieces using dask.
         # Each piece is a separate dataframe, denoted by a partition number.
-        Hash_Frame = dd.read_csv(Full_Path, sep=':', blocksize=Split_Limit, header=None, dtype={0:"string", 1:"int64"})
+        Hash_Frame = dd.read_csv(Full_Path, sep=':', blocksize=Split_Limit, header=None)#, dtype={0:"string", 1:"int64"})
         
         # Calculate the total number of partitions
         total_partitions = int(Hash_Frame.npartitions)
