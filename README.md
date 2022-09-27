@@ -85,7 +85,7 @@ These were the system requirements during testing, and the script can likely run
 
 **Disk Space**
 - At least 30gb disk space
-  - The HaveIBeenPwned hash file decompressed takes up almost 22gb of disk space
+  - The HaveIBeenPwned hash file takes up almost 22gb of disk space once unzipped
 
 ## Usage
 To run ADACCT for the first time:
