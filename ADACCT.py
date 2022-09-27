@@ -611,9 +611,6 @@ def download_and_unzip():
     print("File unzipped.")
     # Delete archive file once it has been unzipped
     print("Cleaning up...")
-    
-    print(Full_Path)
-    print(File_Name)
     if os.path.exists(Full_Path):
         os.remove(File_Name)
     else:
@@ -625,7 +622,7 @@ def download_and_unzip():
     Download_End = time.time()
     Elapsed_Download = Download_End - Download_Start
     Elapsed_Download = round(Elapsed_Download, 2)
-    Elapsed_Download = round((int(Elapsed_Download/60), 2))
+    Elapsed_Download = round((int(Elapsed_Download)/60), 2)
     print("\nTotal elapsed time taken to download hash file: " + str(Elapsed_Download) + " (Minutes)")
     print("Continuing...")
     
