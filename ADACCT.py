@@ -17,17 +17,12 @@ from os import path
 from getpass import getpass
 
 
-# pip install "dask[dataframe]"
-
-
 # Function to install packages via pip (aka Pip Cheat)
 def install_library(package):
     # Run pip as a subprocess
     subprocess.call(['pip', 'install', package])
     return
 
-# Install pypiwin32 to access windows api services
-#install_library("pypiwin32")
 
 # Install missing packages
 while True:
@@ -44,11 +39,15 @@ while True:
     except Exception as e:
         Missing_Library = str(e).strip('No module named ')
         Missing_Library = Missing_Library.strip("'")
+        
         # Install pypiwin32 to access windows api services
         if Missing_Library == "win32crypt":
             install_library("pypiwin32")
         elif Missing_Library == "binascii":
             install_library("pypiwin32")
+        # Install the dataframe specific portion of dask
+        elif Missing_Library == "dask":
+            install_library("dask[dataframe]")
         else:
             install_library(Missing_Library)
 
@@ -111,6 +110,33 @@ def acknowledgements(*args):
     return
    
 
+# Function to print help screen
+def print_help():
+    # Print help screen
+    print("ADACCT is a command line tool to check user email addresses and NTLM hashes for compromise against HaveIBeenPwned's database.")
+    
+    print("\n  Arguments: ")
+    print(" -h, --help for help. (This screen)")
+    print(" -d, --download Downloads and unzips the HIBP hash file to the current directory.")
+    print(" -e, --email Checks emails addresses found in the current active directory for compromise.")
+    print(" -n, --ntlm Checks NTLM hashes pulled from active directory against compromised hash list.")
+    print(" -A for running this script in the background, completely automated (Only applies to -e argument).")
+    
+    print("\n -A argument makes a few assumptions listed below: ")
+    print("\t- The script will not ask for any user input.")
+    print("\t- The script has to be run with Administrator privileges.")
+    print("\t- The results will automatically be emailed.")
+    print("\t- The sender address credentials, the api key, and the")
+    print("\t  receiving email address need to be hardcoded or saved in a file.")
+    print("\t  as the script cannot ask the user to input them.")
+    
+    print("\n -n, --ntlm argument makes one assumption: ")
+    print("\t- HIBP's hash file has been already downloaded and is in the same directory as this script.")
+    print("\t- (As the hash file is just too large to download from the script)")
+    
+    return
+
+
 # Function to run script as admin
 # In essence, checks to see if the current script is being
 # Run with admin priveledges. If not, spawn a UAC prompt,
@@ -145,6 +171,7 @@ def run_as_admin(argv=None, debug=False):
     
 
 # Function to export credentials to xml file and encrypt using windows dpapi
+# An exact adaptation of the powershell commandlet Export-Clixml
 def export_credentials(username, password, filepath):
     # Encrypt the password using dpapi
     encrypted_password = win32crypt.CryptProtectData(password.encode("utf-16-le"))
@@ -179,6 +206,7 @@ def export_credentials(username, password, filepath):
 
 
 # Function to import credentials from xml file
+# An exact adaptation of the powershell commandlet Import-Clixml
 def import_credentials(filename):
     # Import file and get credentials
     with open(filename, 'r', encoding='utf-16') as f:
@@ -189,7 +217,7 @@ def import_credentials(filename):
         password_secure_string = xml.split('<SS N="Password">')[1].split("</SS>")[0]
 
         # CryptUnprotectData returns two values, description and the password
-        _, decrypted_password_string = win32crypt.CryptUnprotectData(binascii.unhexlify(password_secure_string))#, None, None, None, 0)
+        _, decrypted_password_string = win32crypt.CryptUnprotectData(binascii.unhexlify(password_secure_string))
 
         # Decode password string to get rid of unknown characters
         decrypted_password_string = decrypted_password_string.decode("utf-16-le")
@@ -212,7 +240,7 @@ def install_tools():
             nuget_check = subprocess.check_output(["powershell.exe", "Find-Package -Name 'nuget' -Force"]).decode("utf-8")
         except subprocess.CalledProcessError:
             # Install NuGet package provider
-            NuGet = subprocess.check_output(["powershell.exe", "Install-PackageProvider -Name 'nuget' -Force"])
+            NuGet = subprocess.check_output(["powershell.exe", "Install-PackageProvider -Name 'nuget' -Force"])#; Import-PackageProvider -Name 'nuget'"])
         
         # Check to see if tools are already installed
         ad_module_check = subprocess.check_output(["powershell.exe", "Get-InstalledModule -Name 'ActiveDirectory'"]).decode("utf-8")
@@ -458,75 +486,7 @@ def send_mail(to_address, message, *args):
                     Sender_Address, Sender_Password = import_credentials(Full_Path)
                     print("Credentials imported successfully.")
                 except:
-                    print("Failed to import credentials from file.")
-                
-                
-                ''' 
-                with open(Full_Path, 'r') as file:
-                    File_Contents = file.readlines()
-                    file.close()
-                    if len(File_Contents) > 0:
-                        File_Contents = File_Contents[0].split(':')
-                        Sender_Address = File_Contents[0]
-                        Sender_Password = File_Contents[1]
-                        #file.close()
-                        print("Email credentials found in save file.")
-                    else:
-                        # If file is empty, ask for credentials
-                        print("Save file empty.")
-                        # Don't use credentials. Ask for new ones.
-                        Sender_Address = input("Please enter an email address to send results from (Make sure Less Secure Apps are allowed): ")
-                        Sender_Password = getpass("Enter password for above email address previously entered (Characters will not be printed): ")
-                        # Save if warranted
-                        while True:
-                            Save_Credentials = input("Would you like to save these credentials for future use? (y/n) ").lower()
-                            if (Save_Credentials == 'y') or (Save_Credentials == "yes"):
-########################################################################
-                                # Save credentials as emailaddress:emailpassword
-                                print("Saving to file...")
-                                export_credentials(str(Sender_Address), str(Sender_Password), Full_Path)
-                                break
-########################################################################
-                            elif (Save_Credentials == 'n') or (Save_Credentials == "no"):
-                                print("Continuing...")
-                                break
-                            else:
-                                # Other character entered.
-                                print("Invalid response entered. Use y/Y for yes, and n/N for no.")
-                # This should be yes, but just in case
-                while True:
-                    Continue = input("Continue using " + str(Sender_Address) + "? (y/n) ").lower()
-                    if (Continue == 'y') or (Continue == "yes"):
-                        # Continue using credentials already found.
-                        pass
-                        break
-                    elif (Continue == 'n') or (Continue == "no"):
-                        # Don't use credentials. Ask for new ones.
-                        Sender_Address = input("Please enter an email address to send results from (Make sure Less Secure Apps are allowed): ")
-                        Sender_Password = getpass("Enter password for above email address previously entered (Characters will not be printed): ")
-                        # Save if warranted
-                        while True:
-                            Save_Credentials = input("Would you like to save these credentials for future use? (y/n) ").lower()
-                            if (Save_Credentials == 'y') or (Save_Credentials == "yes"):
-########################################################################
-                                # Save credentials as emailaddress:emailpassword
-                                print("Saving to file...")     
-                                export_credentials(str(Sender_Address), str(Sender_Password), Full_Path)
-                                break
-########################################################################
-                            elif (Save_Credentials == 'n') or (Save_Credentials == "no"):
-                                print("Continuing...")
-                                break
-                            else:
-                                # Other character entered.
-                                print("Invalid response entered. Use y/Y for yes, and n/N for no.")
-                        break
-                    else:
-                        # Other character entered.
-                        print("Invalid response entered. Use y/Y for yes, and n/N for no.")
-                print("Continuing...")
-                '''
-                
+                    print("Failed to import credentials from file.")                
             else:
                 print("No previous sender credentials exist.")
                 # Ask user for credentials
@@ -536,12 +496,10 @@ def send_mail(to_address, message, *args):
                 while True:
                     Save_Credentials = input("Would you like to save these credentials for future use? (y/n) ").lower()
                     if (Save_Credentials == 'y') or (Save_Credentials == "yes"):
-########################################################################
-                        # Save credentials as emailaddress:emailpassword
+                        # Save credentials
                         print("Saving to file...")
                         export_credentials(str(Sender_Address), str(Sender_Password), Full_Path)
                         break
-########################################################################
                     elif (Save_Credentials == 'n') or (Save_Credentials == "no"):
                         print("Continuing...")
                         break
@@ -565,24 +523,28 @@ def send_mail(to_address, message, *args):
                     Sender_Address = input("Please enter an email address to send results from (Make sure Less Secure Apps are allowed): ")
                     Sender_Password = getpass("Enter password for above email address previously entered (Characters will not be printed): ")
                     Save_Credentials = input("Would you like to save these credentials for future use? (y/n) ")
-                    # save
-                    break
-                else:
-                    # Other character entered.    
-                    print("Invalid response entered. Use y/Y for yes, and n/N for no.")
+                    # Save if warranted
+                    Save_Credentials = input("Would you like to save these credentials for future use? (y/n) ").lower()
+                    if (Save_Credentials == 'y') or (Save_Credentials == "yes"):
+                        # Save credentials
+                        print("Saving to file...")
+                        export_credentials(str(Sender_Address), str(Sender_Password), Full_Path)
+                        break
+                    elif (Save_Credentials == 'n') or (Save_Credentials == "no"):
+                        print("Continuing...")
+                        break
+                    else:
+                        # Other character entered.
+                        print("Invalid response entered. Use y/Y for yes, and n/N for no.")
             print("Continuing...")
     else:
         # Pull from file and continue (this assumes they exist)
-        with open(Full_Path, 'r') as file:
-            File_Contents = file.readlines()
-            file.close()
-            if len(File_Contents) > 0:
-                File_Contents = File_Contents[0].split(':')
-                Sender_Address = File_Contents[0]
-                Sender_Password = File_Contents[1]
-            else:
-                # WELL
-                pass
+        # Import credentials from file
+        try:
+            Sender_Address, Sender_Password = import_credentials(Full_Path)
+            print("Credentials imported successfully.")
+        except:
+            print("Failed to import credentials from file.")
        
     # Email address to send to
     Receiving_Address = to_address
@@ -610,395 +572,6 @@ def send_mail(to_address, message, *args):
     return
 
 
-# Function to run script as normal, with user interation
-def run_normal():
-    # Get current admin state
-    Admin_State = run_as_admin()
-    
-    # API Key
-    Api_Key = ""
-    # Receiving email
-    Receiving_Email = ""
-
-    if Admin_State is True:
-        # Move to admin window
-        print('Continuing in admin window...')
-       
-        # The rest of the script will run in the elevated window
-        # List to hold email addresses
-        Email_Addresses = []
- 
-        # Call function to get all emails from active directory
-        Email_Addresses = get_emails()
-       
-        # Check to see if api key is saved
-        print("Checking to see if api key already exists...")
-        # If the length is zero, the variable is empty.
-        if len(Api_Key) == 0:
-            # Check files to see if there is a save file.
-            # Get current working directory
-            Current_Directory = os.getcwd()
-            # Default text file to save authentication email for sending from
-            Api_File = "api_key.txt"
-            # Full path to credential file
-            Full_Path = str(Current_Directory) + "\\" + str(Api_File)
-            # Check to see if file exists
-            Api_File_Existence = path.exists(Full_Path)
-           
-            # If file exists, get key
-            if Api_File_Existence == True:
-                print("Save file found. Checking for key...")
-                # Load in key
-                with open(Full_Path, 'r') as file:
-                    File_Contents = file.readlines()
-                    file.close()
-                # Make sure there is a key in file
-                if len(File_Contents) > 0:
-                    print("Api key found in save file.")
-                    Api_Key = str(File_Contents[0])
-                else:
-                    # If file is empty, ask for key
-                    print("Save file empty.")
-                    Api_Key = input("Please enter an Api Key to access HaveIBeenPwned's api: ")
-                    # Save if warranted
-                    while True:
-                        Save_Key = input("Would you like to save this key for future use? (y/n) ").lower()
-                        if (Save_Key == 'y') or (Save_Key == "yes"):
-##############################################################
-                            # Save key
-                            print("Saving to file...")
-                            with open(Full_Path, 'w+') as file:
-                                file.write(str(Api_Key))
-                                file.close()
-                            print("Saved!")
-##############################################################
-                            break
-                        elif (Save_Key == 'n') or (Save_Key == "no"):
-                            print("Continuing...")
-                            break
-                        else:
-                            # Other character entered.
-                            print("Invalid response entered. Use y/Y for yes, and n/N for no.")
-            # No key file found
-            else:
-                Api_Key = input("Please enter an Api Key to access HaveIBeenPwned's api: ")
-                # Save if warranted
-                while True:
-                    Save_Key = input("Would you like to save this key for future use? (y/n) ").lower()
-                    if (Save_Key == 'y') or (Save_Key == "yes"):
-##############################################################
-                        # Save key
-                        print("Saving to file...")
-                        with open(Full_Path, 'w+') as file:
-                            file.write(str(Api_Key))
-                            file.close()
-                        print("Saved!")
-##############################################################
-                        break
-                    elif (Save_Key == 'n') or (Save_Key == "no"):
-                        print("Continuing...")
-                        break
-                    else:
-                        # Other character entered.
-                        print("Invalid response entered. Use y/Y for yes, and n/N for no.")
-       
-        # Send email list to api for checking
-        HIBP_Results = check_email(Email_Addresses, Api_Key)
-        
-        # Create a dataframe of the compromised emails and site, and then save as csv file
-        Simplified_Results = []
-        for result in HIBP_Results:
-            Current_Result = []
-            Current_Result.append(result[0])
-            for site in result[1]:
-                Current_Result.append(site)
-            Simplified_Results.append(Current_Result)
-                
-        # Write to csv file
-        with open("Compromised_Emails.csv", 'a') as file:
-            for result in Simplified_Results:
-                for item in result:
-                    file.write(str(item))
-                    file.write(',')
-                file.write('\n')
-            file.close()
-       
-        # Beautify results (Results come back as a list of lists, after I get ahold of them anyway)
-        The_End_Result = ''
-        # Create massive string of results, neatly organized
-        for email in HIBP_Results:
-            Current_Address = email[0]
-            Site_List = email[1]
-            if len(Site_List) > 0:
-                The_End_Result += ('\n' + str(Current_Address) + " has been compromised on " + str(len(Site_List)) + " site(s), listed below: \n\n\t")
-                i = 0
-                while i < len(Site_List):
-                    # Check if i is an exact multiple of 4.
-                    The_End_Result += (str(Site_List[i]) + ', ')
-                    # Check if i is an exact multiple of 4.
-                    if (i != 0) and (i % 4 == 0):
-                        # Start new line after every 4 sites printed
-                        The_End_Result += '\n\t'
-                    i += 1
-            # Ad another newline for readability
-            The_End_Result += '\n'
-        
-        while True:
-            To_Send_Or_To_Not_To = input("Send results via email? (y/n) ").lower()
-            # Print to screen, email, or save as CSV (Maybe a way to do multiple)
-            if (To_Send_Or_To_Not_To == 'y') or (To_Send_Or_To_Not_To == "yes"):
-                # Save email
-                if len(Receiving_Email) == 0:
-                    # Check files to see if there is a save file.
-                    # Get current working directory
-                    Current_Directory = os.getcwd()
-                    # Default text file to save authentication email for sending from
-                    Receive_File = "receiving_address.txt"
-                    # Full path to email file
-                    Full_Path = str(Current_Directory) + "\\" + str(Receive_File)
-                    # Check to see if file exists
-                    Receive_File_Existence = path.exists(Full_Path)
-                   
-                    # If file exists, get email
-                    if Receive_File_Existence == True:
-                        print("Save file found. Checking for email address...")
-                        # Load in key
-                        with open(Full_Path, 'r') as file:
-                            File_Contents = file.readlines()
-                            file.close()
-                        # Make sure there is an email in file
-                        if len(File_Contents) > 0:
-                            print("Receving email found in save file.")
-                            Receiving_Email = str(File_Contents[0])
-                            
-                            while True:
-                                Continue = input("Continue using " + str(Receiving_Email) + "? (y/n) ").lower()
-                                if (Continue == 'y') or (Continue == "yes"):
-                                    # Continue using credentials already found.
-                                    pass
-                                    break
-                                else:
-                                    # If file is empty, ask for email
-                                    print("Save file empty.")
-                                    Receiving_Email = input("Please enter an email to send results to: ")
-                                    # Save if warranted
-                                    while True:
-                                        Save_Email = input("Would you like to save this email for future use? (y/n) ").lower()
-                                        if (Save_Email == 'y') or (Save_Email == "yes"):
-##############################################################
-                                            # Save email
-                                            print("Saving to file...")
-                                            with open(Full_Path, 'w+') as file:
-                                                file.write(str(Receiving_Email))
-                                                file.close()
-                                            print("Saved!")
-##############################################################
-                                            break
-                                        elif (Save_Email == 'n') or (Save_Email == "no"):
-                                            print("Continuing...")
-                                            break
-                                        else:
-                                            # Other character entered.
-                                            print("Invalid response entered. Use y/Y for yes, and n/N for no.")
-                                    break
-                            print("Continuing...")
-                        else:
-                            # If file is empty, ask for email
-                            print("Save file empty.")
-                            Receiving_Email = input("Please enter an email to send results to: ")
-                            # Save if warranted
-                            while True:
-                                Save_Email = input("Would you like to save this email for future use? (y/n) ").lower()
-                                if (Save_Email == 'y') or (Save_Email == "yes"):
-##############################################################
-                                    # Save email
-                                    print("Saving to file...")
-                                    with open(Full_Path, 'w+') as file:
-                                        file.write(str(Receiving_Email))
-                                        file.close()
-                                    print("Saved!")
-##############################################################
-                                    break
-                                elif (Save_Email == 'n') or (Save_Email == "no"):
-                                    print("Continuing...")
-                                    break
-                                else:
-                                    # Other character entered.
-                                    print("Invalid response entered. Use y/Y for yes, and n/N for no.")
-                    # No key file found
-                    else:
-                        Receiving_Email = input("Please enter an email to send results to: ")
-                        # Save if warranted
-                        while True:
-                            Save_Email = input("Would you like to save this email for future use? (y/n) ").lower()
-                            if (Save_Email == 'y') or (Save_Email == "yes"):
-                                # Save key
-##############################################################
-                                print("Saving to file...")
-                                with open(Full_Path, 'w+') as file:
-                                    file.write(str(Receiving_Email))
-                                    file.close()
-                                print("Saved!")
-##############################################################
-                                break
-                            elif (Save_Email == 'n') or (Save_Email == "no"):
-                                print("Continuing...")
-                                break
-                            else:
-                                # Other character entered.
-                                print("Invalid response entered. Use y/Y for yes, and n/N for no.")
-                    # Send to email  
-                    send_mail(Receiving_Email, The_End_Result)             
-                break
-            elif (To_Send_Or_To_Not_To == 'n') or (To_Send_Or_To_Not_To == "no"):
-                # Dont email, just print to screen
-                print(The_End_Result)
-                break
-            else:
-                # Other character entered.
-                print("Invalid response entered. Use y/Y for yes, and n/N for no.")
-                
-        # Save to csv file as well (default)
-        
-                
-        # Exit
-        input("Done. Press enter to exit or continue...")
-                
-    elif Admin_State is None:
-        print('Elevating privleges and moving to admin window.')
-    else:
-        print('Error: cannot elevate privileges.')
-    
-    return
-    
-
-# Function to run script automated (only the email portion)
-def run_automated():
-    # Get current admin state
-    Admin_State = run_as_admin()
-    
-    # API Key
-    Api_Key = ""
-    # Receiving email
-    Receiving_Email = ""
-
-    if Admin_State is True:
-        # The rest of the script will run in the elevated window
-        # List to hold email addresses
-        Email_Addresses = []
- 
-        # Call function to get all emails from active directory
-        Email_Addresses = get_emails("auto")
-       
-        # If the length is zero, the variable is empty.
-        if len(Api_Key) == 0:
-            # Check files to see if there is a save file.
-            # Get current working directory
-            Current_Directory = os.getcwd()
-            # Default text file to save authentication email for sending from
-            Api_File = "api_key.txt"
-            # Full path to credential file
-            Full_Path = str(Current_Directory) + "\\" + str(Api_File)
-            # Check to see if file exists
-            Api_File_Existence = path.exists(Full_Path)
-           
-            # If file exists, get key
-            if Api_File_Existence == True:
-                with open(Full_Path, 'r') as file:
-                    File_Contents = file.readlines()
-                    file.close()
-                # Make sure there is a key in file
-                if len(File_Contents) > 0:
-                    Api_Key = str(File_Contents[0])
-                else:
-                    # Fail
-                    exit()
-            # No key file found
-            else:
-                # Fail
-                exit()
-       
-        # Send email list to api for checking
-        HIBP_Results = check_email(Email_Addresses, Api_Key)
-        
-        # Create a dataframe of the compromised emails and site, and then save as csv file
-        Simplified_Results = []
-        for result in HIBP_Results:
-            Current_Result = []
-            Current_Result.append(result[0])
-            for site in result[1]:
-                Current_Result.append(site)
-            Simplified_Results.append(Current_Result)
-                
-        # Write to csv file
-        with open("Compromised_Emails.csv", 'a') as file:
-            for result in Simplified_Results:
-                for item in result:
-                    file.write(str(item))
-                    file.write(',')
-                file.write('\n')
-            file.close()
-       
-        # Beautify results (Results come back as a list of lists, after I get ahold of them anyway)
-        The_End_Result = ''
-        # Create massive string of results, neatly organized
-        for email in HIBP_Results:
-            Current_Address = email[0]
-            Site_List = email[1]
-            if len(Site_List) > 0:
-                #print('\n' + str(Current_Address) + " has been compromised on " + str(len(Site_List)) + " site(s), listed below.")
-                The_End_Result += ('\n' + str(Current_Address) + " has been compromised on " + str(len(Site_List)) + " site(s), listed below: \n\n\t")
-                i = 0
-                while i < len(Site_List):
-                    # Check if i is an exact multiple of 4.
-                    The_End_Result += (str(Site_List[i]) + ', ')
-                    # Check if i is an exact multiple of 4.
-                    if (i != 0) and (i % 4 == 0):
-                        # Start new line after every 4 sites printed
-                        The_End_Result += '\n\t'
-                    i += 1
-            # Ad another newline for readability
-            The_End_Result += '\n'
-            
-        # Get current working directory
-        Current_Directory = os.getcwd()
-        # Default text file to save authentication email for sending from
-        Receive_File = "receiving_address.txt"
-        # Full path to email file
-        Full_Path = str(Current_Directory) + "\\" + str(Receive_File)
-        # Check to see if file exists
-        Receive_File_Existence = path.exists(Full_Path)
-       
-        # If file exists, get email
-        if Receive_File_Existence == True:
-            print("Save file found. Checking for email address...")
-            # Load in key
-            with open(Full_Path, 'r') as file:
-                File_Contents = file.readlines()
-                file.close()
-            # Make sure there is an email in file
-            if len(File_Contents) > 0:
-                print("Receving email found in save file.")
-                Receiving_Email = str(File_Contents[0])
-            else:
-                # Fail
-                exit()
-        # File not found
-        else:
-            # Fail
-            exit() 
-        # Email results    
-        # Send results via email
-        send_mail(Receiving_Email, The_End_Result, "auto")
-
-    elif Admin_State is None:
-        print('Elevating privleges and moving to admin window.')
-    else:
-        print('Error: cannot elevate privileges.')
-    
-    return
-    
-    
 # Function to download a file from a given url
 def download_and_unzip():
     # Url to HIBP hash file
@@ -1182,7 +755,6 @@ def check_ntlm_hashes():
         Hash_Existence = path.exists(Full_Path)
         if Hash_Existence == False:
             print("Cannot find Compromised NTLM Hash File.")
-            
             # Download hibp file if warranted
             while True:
                 Download_File = input("Would you like to download HIBP's hash file now? (y/n) ").lower()
@@ -1221,10 +793,7 @@ def check_ntlm_hashes():
         # Create final dataframe of users that have compromised passwords
         Compromised_Users = pd.DataFrame()
 
-        # Get number of gigabytes allowed
-        # Seems tables are made when doing calculations on a dataframe.
-        # These are at least the same size as the dataframe in question.      
-        # Determine number of hashes that can be read into dataframe at once
+        # Get number of megabytes to allocate to dataframe
         Split_Limit = int(Allowed_Usage * (Bytes/1000000)/6)
         Split_Limit = str(Split_Limit) + "MB"
         print("Partition size limit(MB):", Split_Limit)
@@ -1315,29 +884,320 @@ def check_ntlm_hashes():
     return
 
 
-# Function to print help screen
-def print_help():
-    # Print help screen
-    print("ADACCT is a command line tool to check user email addresses and NTLM hashes for compromise against HaveIBeenPwned's database.")
+# Function to run script as normal, with user interation
+def run_normal():
+    # Get current admin state
+    Admin_State = run_as_admin()
     
-    print("\n  Arguments: ")
-    print(" -h, --help for help. (This screen)")
-    print(" -d, --download Downloads and unzips the HIBP hash file to the current directory.")
-    print(" -e, --email Checks emails addresses found in the current active directory for compromise.")
-    print(" -n, --ntlm Checks NTLM hashes pulled from active directory against compromised hash list.")
-    print(" -A for running this script in the background, completely automated (Only applies to -e argument).")
+    # API Key
+    Api_Key = ""
+    # Receiving email
+    Receiving_Email = ""
+
+    if Admin_State is True:
+        # Move to admin window
+        print('Continuing in admin window...')
+       
+        # The rest of the script will run in the elevated window
+        # List to hold email addresses
+        Email_Addresses = []
+ 
+        # Call function to get all emails from active directory
+        Email_Addresses = get_emails()
+       
+        # Check to see if api key is saved
+        print("Checking to see if api key already exists...")
+        # If the length is zero, the variable is empty.
+        if len(Api_Key) == 0:
+            # Check files to see if there is a save file.
+            # Get current working directory
+            Current_Directory = os.getcwd()
+            # Default text file to save authentication email for sending from
+            Api_File = "api_clixml.xml"
+            # Full path to credential file
+            Full_Path = str(Current_Directory) + "\\" + str(Api_File)
+            # Check to see if file exists
+            Api_File_Existence = path.exists(Full_Path)
+           
+            # If file exists, get key
+            if Api_File_Existence == True:
+                print("Save file found. Decrypting key...")
+                # Import key from file
+                try:
+                    _, Api_Key = import_credentials(Full_Path)
+                    print("Credentials imported successfully.")
+                except:
+                    print("Failed to import credentials from file.")                          
+            # No key file found
+            else:
+                Api_Key = input("Please enter an Api Key to access HaveIBeenPwned's api: ")
+                # Save if warranted
+                while True:
+                    Save_Key = input("Would you like to save this key for future use? (y/n) ").lower()
+                    if (Save_Key == 'y') or (Save_Key == "yes"):
+                        # Save key
+                        print("Saving to file...")
+                        export_credentials("api_key", Api_Key, Full_Path)
+                        break
+                    elif (Save_Key == 'n') or (Save_Key == "no"):
+                        print("Continuing...")
+                        break
+                    else:
+                        # Other character entered.
+                        print("Invalid response entered. Use y/Y for yes, and n/N for no.")
+
+        # Send email list to api for checking
+        HIBP_Results = check_email(Email_Addresses, Api_Key)
+        
+        # Create a dataframe of the compromised emails and site, and then save as csv file
+        Simplified_Results = []
+        for result in HIBP_Results:
+            Current_Result = []
+            Current_Result.append(result[0])
+            for site in result[1]:
+                Current_Result.append(site)
+            Simplified_Results.append(Current_Result)
+                
+        # Write to csv file
+        with open("Compromised_Emails.csv", 'a') as file:
+            for result in Simplified_Results:
+                for item in result:
+                    file.write(str(item))
+                    file.write(',')
+                file.write('\n')
+            file.close()
+       
+        # Beautify results (Results come back as a list of lists, after I get ahold of them anyway)
+        The_End_Result = ''
+        # Create massive string of results, neatly organized
+        for email in HIBP_Results:
+            Current_Address = email[0]
+            Site_List = email[1]
+            if len(Site_List) > 0:
+                The_End_Result += ('\n' + str(Current_Address) + " has been compromised on " + str(len(Site_List)) + " site(s), listed below: \n\n\t")
+                i = 0
+                while i < len(Site_List):
+                    # Check if i is an exact multiple of 4.
+                    The_End_Result += (str(Site_List[i]) + ', ')
+                    # Check if i is an exact multiple of 4.
+                    if (i != 0) and (i % 4 == 0):
+                        # Start new line after every 4 sites printed
+                        The_End_Result += '\n\t'
+                    i += 1
+            # Ad another newline for readability
+            The_End_Result += '\n'
+        
+        while True:
+            To_Send_Or_To_Not_To = input("Send results via email? (y/n) ").lower()
+            # Print to screen, email, or save as CSV (Maybe a way to do multiple)
+            if (To_Send_Or_To_Not_To == 'y') or (To_Send_Or_To_Not_To == "yes"):
+                # Save email
+                if len(Receiving_Email) == 0:
+                    # Check files to see if there is a save file.
+                    # Get current working directory
+                    Current_Directory = os.getcwd()
+                    # Default text file to save authentication email for sending from
+                    Receive_File = "output_clixml.xml"
+                    # Full path to email file
+                    Full_Path = str(Current_Directory) + "\\" + str(Receive_File)
+                    # Check to see if file exists
+                    Receive_File_Existence = path.exists(Full_Path)
+                   
+                    # If file exists, get email
+                    if Receive_File_Existence == True:
+                        print("Save file found. Importing email address...")
+                        # Load in email
+                        Receiving_Email, _ = import_credentials(Full_Path)
+                        
+                        while True:
+                            Continue = input("Continue using " + str(Receiving_Email) + "? (y/n) ").lower()
+                            if (Continue == 'y') or (Continue == "yes"):
+                                # Continue using credentials already found.
+                                pass
+                                break
+                            else:
+                                # If file is empty, ask for email
+                                print("Save file empty.")
+                                Receiving_Email = input("Please enter an email to send results to: ")
+                                # Save if warranted
+                                while True:
+                                    Save_Email = input("Would you like to save this email for future use? (y/n) ").lower()
+                                    if (Save_Email == 'y') or (Save_Email == "yes"):
+                                        # Save email
+                                        print("Saving to file...")
+                                        export_credentials(str(Receiving_Email), "Empty", Full_Path)                                            
+                                        break
+                                    elif (Save_Email == 'n') or (Save_Email == "no"):
+                                        print("Continuing...")
+                                        break
+                                    else:
+                                        # Other character entered.
+                                        print("Invalid response entered. Use y/Y for yes, and n/N for no.")
+                                break
+                        print("Continuing...")
+                    # No key file found
+                    else:
+                        Receiving_Email = input("Please enter an email to send results to: ")
+                        # Save if warranted
+                        while True:
+                            Save_Email = input("Would you like to save this email for future use? (y/n) ").lower()
+                            if (Save_Email == 'y') or (Save_Email == "yes"):
+                                # Save email
+                                print("Saving to file...")
+                                export_credentials(str(Receiving_Email), "Empty", Full_Path)
+                                break
+                            elif (Save_Email == 'n') or (Save_Email == "no"):
+                                print("Continuing...")
+                                break
+                            else:
+                                # Other character entered.
+                                print("Invalid response entered. Use y/Y for yes, and n/N for no.")
+                    # Send to email  
+                    send_mail(Receiving_Email, The_End_Result)             
+                break
+            elif (To_Send_Or_To_Not_To == 'n') or (To_Send_Or_To_Not_To == "no"):
+                # Dont email, just print to screen
+                print(The_End_Result)
+                break
+            else:
+                # Other character entered.
+                print("Invalid response entered. Use y/Y for yes, and n/N for no.")
+                
+        # Exit
+        input("Done. Press enter to exit or continue...")
+                
+    elif Admin_State is None:
+        print('Elevating privleges and moving to admin window.')
+    else:
+        print('Error: cannot elevate privileges.')
     
-    print("\n -A argument makes a few assumptions listed below: ")
-    print("\t- The script will not ask for any user input.")
-    print("\t- The script has to be run with Administrator privileges.")
-    print("\t- The results will automatically be emailed.")
-    print("\t- The sender address credentials, the api key, and the")
-    print("\t  receiving email address need to be hardcoded or saved in a file.")
-    print("\t  as the script cannot ask the user to input them.")
+    return
     
-    print("\n -n, --ntlm argument makes one assumption: ")
-    print("\t- HIBP's hash file has been already downloaded and is in the same directory as this script.")
-    print("\t- (As the hash file is just too large to download from the script)")
+
+# Function to run script automated (only the email portion)
+def run_automated():
+    # Get current admin state
+    Admin_State = run_as_admin()
+    
+    # API Key
+    Api_Key = ""
+    # Receiving email
+    Receiving_Email = ""
+
+    if Admin_State is True:
+        # The rest of the script will run in the elevated window
+        # List to hold email addresses
+        Email_Addresses = []
+ 
+        # Call function to get all emails from active directory
+        Email_Addresses = get_emails("auto")
+
+        if len(Api_Key) == 0:
+            # Check files to see if there is a save file.
+            # Get current working directory
+            Current_Directory = os.getcwd()
+            # Default text file to save authentication email for sending from
+            Api_File = "api_clixml.xml"
+            # Full path to credential file
+            Full_Path = str(Current_Directory) + "\\" + str(Api_File)
+            # Check to see if file exists
+            Api_File_Existence = path.exists(Full_Path)
+           
+            # If file exists, get key
+            if Api_File_Existence == True:
+                print("Save file found. Decrypting key...")
+                # Import key from file
+                try:
+                    _, Api_Key = import_credentials(Full_Path)
+                    print("Credentials imported successfully.")
+                except:
+                    print("Failed to import credentials from file.")                          
+            # No key file found
+            else:
+                # Fail
+                exit()
+
+        # Send email list to api for checking
+        HIBP_Results = check_email(Email_Addresses, Api_Key)
+        
+        # Create a dataframe of the compromised emails and site, and then save as csv file
+        Simplified_Results = []
+        for result in HIBP_Results:
+            Current_Result = []
+            Current_Result.append(result[0])
+            for site in result[1]:
+                Current_Result.append(site)
+            Simplified_Results.append(Current_Result)
+                
+        # Write to csv file
+        with open("Compromised_Emails.csv", 'a') as file:
+            for result in Simplified_Results:
+                for item in result:
+                    file.write(str(item))
+                    file.write(',')
+                file.write('\n')
+            file.close()
+       
+        # Beautify results (Results come back as a list of lists, after I get ahold of them anyway)
+        The_End_Result = ''
+        # Create massive string of results, neatly organized
+        for email in HIBP_Results:
+            Current_Address = email[0]
+            Site_List = email[1]
+            if len(Site_List) > 0:
+                #print('\n' + str(Current_Address) + " has been compromised on " + str(len(Site_List)) + " site(s), listed below.")
+                The_End_Result += ('\n' + str(Current_Address) + " has been compromised on " + str(len(Site_List)) + " site(s), listed below: \n\n\t")
+                i = 0
+                while i < len(Site_List):
+                    # Check if i is an exact multiple of 4.
+                    The_End_Result += (str(Site_List[i]) + ', ')
+                    # Check if i is an exact multiple of 4.
+                    if (i != 0) and (i % 4 == 0):
+                        # Start new line after every 4 sites printed
+                        The_End_Result += '\n\t'
+                    i += 1
+            # Ad another newline for readability
+            The_End_Result += '\n'
+            
+        # Check to see if email was hardcoded
+        if len(Receiving_Email) == 0:
+            # Check files to see if there is a save file.
+            # Get current working directory
+            Current_Directory = os.getcwd()
+            # Default text file to save authentication email for sending from
+            Receive_File = "output_clixml.xml"
+            # Full path to email file
+            Full_Path = str(Current_Directory) + "\\" + str(Receive_File)
+            # Check to see if file exists
+            Receive_File_Existence = path.exists(Full_Path)
+
+            # If file exists, get email
+            if Receive_File_Existence == True:
+                print("Save file found. Importing email address...")
+                # Load in email
+                Receiving_Email, _ = import_credentials(Full_Path)
+            # No key file found
+            else:
+                # Fail
+                exit()   
+        else:
+            # If file exists, get email
+            if Receive_File_Existence == True:
+                print("Save file found. Importing email address...")
+                # Load in email
+                Receiving_Email, _ = import_credentials(Full_Path)
+            # No key file found
+            else:
+                # Fail
+                exit()
+
+        # Send results via email
+        send_mail(Receiving_Email, The_End_Result, "auto")
+
+    elif Admin_State is None:
+        print('Elevating privleges and moving to admin window.')
+    else:
+        print('Error: cannot elevate privileges.')
     
     return
     
