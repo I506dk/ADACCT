@@ -194,21 +194,15 @@ def export_credentials(username, password, filepath):
     
     # Write encrypted xml data to file
     try:
-        export_file = open(filepath, "w", encoding='utf-16')
-        export_file.write(xml)
-        export_file.close()
-    except Exception:
-        # If error, close tht file in case it was opened
-        print("Failed to open file: {}".format("filename"))
-        
-        # Attempt to close file if it was opened
-        try:
+        with open(filepath, "w", encoding='utf-16') as export_file:
+            export_file.write(xml)
             export_file.close()
-        except Exception:
-            print("No file to close. Continuing...")
-    
-    # Print ending message
-    print("Credentials saved to: {}".format(filepath))
+            
+            # Print ending message
+        print("Credentials saved to: {}".format(filepath))
+            
+    except FileNotFoundError:
+        print("Failed to open file: {}".format("filename"))
 
     return
 
@@ -218,36 +212,26 @@ def export_credentials(username, password, filepath):
 def import_credentials(filename):
     # Import file and get credentials
     try:
-        import_file = open(filename, 'r', encoding='utf-16')
-        xml = import_file.read() 
+        with open(filename, 'r', encoding='utf-16') as import_file:
+            xml = import_file.read()
+            import_file.close()
 
-        # Extract username and password from the XML since thats all we care about.
-        username = xml.split('<S N="UserName">')[1].split("</S>")[0]
-        password_secure_string = xml.split('<SS N="Password">')[1].split("</SS>")[0]
+            # Extract username and password from the XML since thats all we care about.
+            username = xml.split('<S N="UserName">')[1].split("</S>")[0]
+            password_secure_string = xml.split('<SS N="Password">')[1].split("</SS>")[0]
 
-        # CryptUnprotectData returns two values, description and the password
-        _, decrypted_password_string = win32crypt.CryptUnprotectData(binascii.unhexlify(password_secure_string))
+            # CryptUnprotectData returns two values, description and the password
+            _, decrypted_password_string = win32crypt.CryptUnprotectData(binascii.unhexlify(password_secure_string))
 
-        # Decode password string to get rid of unknown characters
-        decrypted_password_string = decrypted_password_string.decode("utf-16-le")
-        import_file.close()
+            # Decode password string to get rid of unknown characters
+            decrypted_password_string = decrypted_password_string.decode("utf-16-le")
         
         return username, decrypted_password_string
         
-    except Exception:
+    except FileNotFoundError:
         print("Failed to open file: {}".format("filename"))
         
-        # Attempt to close file if it was opened
-        try:
-            import_file.close()
-        except Exception:
-            print("No file to close. Continuing...")
-        
         return None
-
-    # Print ending message
-    
-    #return username, decrypted_password_string
 
 
 # Function to install active directory tools via powershell
