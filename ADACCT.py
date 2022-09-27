@@ -200,7 +200,7 @@ def export_credentials(username, password, filepath):
     file.close()
     
     # Print ending message
-    print("Credentials saved to: clixml.xml")
+    print("Credentials saved to: {}".format(filepath))
 
     return
 
