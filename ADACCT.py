@@ -1181,19 +1181,20 @@ def run_automated():
                     i += 1
             # Ad another newline for readability
             The_End_Result += '\n'
-            
+        
+        # Check files to see if there is a save file.
+        # Get current working directory
+        Current_Directory = os.getcwd()
+        # Default text file to save authentication email for sending from
+        Receive_File = "output_clixml.xml"
+        # Full path to email file
+        Full_Path = str(Current_Directory) + "\\" + str(Receive_File)
+        # Check to see if file exists
+        Receive_File_Existence = path.exists(Full_Path)
+
+        
         # Check to see if email was hardcoded
         if len(Receiving_Email) == 0:
-            # Check files to see if there is a save file.
-            # Get current working directory
-            Current_Directory = os.getcwd()
-            # Default text file to save authentication email for sending from
-            Receive_File = "output_clixml.xml"
-            # Full path to email file
-            Full_Path = str(Current_Directory) + "\\" + str(Receive_File)
-            # Check to see if file exists
-            Receive_File_Existence = path.exists(Full_Path)
-
             # If file exists, get email
             if Receive_File_Existence == True:
                 print("Save file found. Importing email address...")
