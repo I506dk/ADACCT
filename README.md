@@ -12,10 +12,11 @@
 - Pulls all user's email addresses from the Active Directory
 - Uses HaveIBeenPwned's api to check each email address for compromise
 - Compromised users can be printed to the screen or emailed
-- (Ab)Uses AD Replication to pull all NTLM hashes from the Domain Controller (Requires Admin credentials for Domain Controller)
+- (Ab)Uses AD Replication to pull all NTLM hashes from the Domain Controller (Requires Domain Admin credentials)
 - Compares user hashes against HaveIBeenPwned's compromised hash file
-- The script checks system memory and aims for 70-80% usage so that a single machine doesn't crash
+- The script checks free system memory and only allocates 75% of that memory for script utilization
 - Option to save API key, Email address credentials, and Domain Admin credentials to file using Windows DPAPI
+- Import_credentials and Export_credentials fucntions are pythonic implementations of Powershell's Import-Clixml and Export-Clixml commandlets
 
 ## Dependencies 
 - [Psutil](https://pypi.org/project/psutil/) - Cross-platform lib for process and system monitoring in Python
@@ -131,7 +132,7 @@ REMINDER - You can use multiple arguments as long as they aren't -h or --help (T
 - [x] Find a way to protect saved API key and Email credentials (Everything is saved using windows dpapi)
 - [ ] Add option to specify location of Hash File (Defaults to the same directory the script is in)
 - [ ] Implement a Trusted Execution Environment to prevent memory dumping attacks
-- [ ] Create minimum privileges require for domain object data replication
+- [ ] Determine minimum privileges required for domain object data replication
 - [ ] Implement a pip cleanup to remove packages or libraries installed by the script
 - [ ] Add support for new Active Directory Checks
 
