@@ -11,7 +11,6 @@ import time
 import shutil
 import ctypes
 import smtplib
-import binascii
 import subprocess
 import urllib.parse
 from os import path
@@ -30,6 +29,7 @@ while True:
     try:
         # Import packages here
         import psutil
+        import binascii
         import requests
         import win32crypt
         import pandas as pd
@@ -43,11 +43,8 @@ while True:
         # Install pypiwin32 to access windows api services
         if Missing_Library == "win32crypt":
             install_library("pypiwin32")
-<<<<<<< Updated upstream
-=======
         elif Missing_Library == "binascii":
             install_library("pypiwin32")
->>>>>>> Stashed changes
         # Install the dataframe specific portion of dask
         elif Missing_Library == "dask":
             install_library("dask[dataframe]")
@@ -577,6 +574,9 @@ def send_mail(to_address, message, *args):
 
 # Function to download a file from a given url
 def download_and_unzip():
+    # Get stating time before downloading
+    Download_Start = time.time()
+
     # Url to HIBP hash file
     HIBP_Hashes = "https://downloads.pwnedpasswords.com/passwords/pwned-passwords-ntlm-ordered-by-hash-v7.7z"
 
@@ -612,12 +612,22 @@ def download_and_unzip():
     # Delete archive file once it has been unzipped
     print("Cleaning up...")
     
+    print(Full_Path)
+    print(File_Name)
     if os.path.exists(Full_Path):
         os.remove(File_Name)
     else:
         # Silently pass if there is no file to delete (Shouldn't ever be the case)
+        print("Nothing here")
         pass
-    input("Done, press enter to exit or continue...")
+    
+    # Get end time and elapsed time of download
+    Download_End = time.time()
+    Elapsed_Download = Download_End - Download_Start
+    Elapsed_Download = round(Elapsed_Download, 2)
+    Elapsed_Download = round((int(Elapsed_Download/60), 2))
+    print("\nTotal elapsed time taken to download hash file: " + str(Elapsed_Download) + " (Minutes)")
+    print("Continuing...")
     
     return
 
@@ -817,7 +827,7 @@ def check_ntlm_hashes():
                 # Print statement at the beginning of each iteration
                 Elapsed_Time = (time.time() - Start_Time)
                 Elapsed_Time = round(Elapsed_Time, 2)
-                print("Reading in partition {} of {}. Elapsed time: {}".format(j+1, total_partitions, Elapsed_Time))
+                print("Reading in partition {} of {}. Elapsed time: {} (Seconds)".format(j+1, total_partitions, Elapsed_Time))
             
                 Current_Frame = Hash_Frame.partitions[j]
                 print("Number of hashes in this partition: {}".format(Current_Frame.shape[0].compute()))
@@ -866,7 +876,7 @@ def check_ntlm_hashes():
         End_Time = time.time()
         Elapsed_Time = (End_Time - Start_Time)
         Elapsed_Time = round(Elapsed_Time, 2)
-        Elapsed_Time = int(Elapsed_Time)/60
+        Elapsed_Time = round((int(Elapsed_Time)/60), 2)
         print("\nTotal elapsed time taken to check hashes: " + str(Elapsed_Time) + " (Minutes)")
 
         # Print total number of compromises
@@ -889,6 +899,9 @@ def check_ntlm_hashes():
 
 # Function to run script as normal, with user interation
 def run_normal():
+    # Get start time
+    Start_Normal = time.time()
+
     # Get current admin state
     Admin_State = run_as_admin()
     
@@ -1011,10 +1024,7 @@ def run_normal():
                         print("Save file found. Importing email address...")
                         # Load in email
                         Receiving_Email, _ = import_credentials(Full_Path)
-<<<<<<< Updated upstream
-=======
                         print("Credentials imported successfully.")
->>>>>>> Stashed changes
                         
                         while True:
                             Continue = input("Continue using " + str(Receiving_Email) + "? (y/n) ").lower()
@@ -1077,6 +1087,13 @@ def run_normal():
         print('Elevating privleges and moving to admin window.')
     else:
         print('Error: cannot elevate privileges.')
+        
+    # Calculate total elapsed time for the script
+    End_Normal = time.time()
+    Elapsed_Time = (End_Normal - Start_Normal)
+    Elapsed_Time = round(Elapsed_Time, 2)
+    Elapsed_Time = round((int(Elapsed_Time)/60), 2)
+    print("\nTotal elapsed time: " + str(Elapsed_Time) + " (Minutes)")
     
     return
     
@@ -1183,10 +1200,7 @@ def run_automated():
                 print("Save file found. Importing email address...")
                 # Load in email
                 Receiving_Email, _ = import_credentials(Full_Path)
-<<<<<<< Updated upstream
-=======
                 print("Credentials imported successfully.")
->>>>>>> Stashed changes
             # No key file found
             else:
                 # Fail
@@ -1197,10 +1211,7 @@ def run_automated():
                 print("Save file found. Importing email address...")
                 # Load in email
                 Receiving_Email, _ = import_credentials(Full_Path)
-<<<<<<< Updated upstream
-=======
                 print("Credentials imported successfully.")
->>>>>>> Stashed changes
             # No key file found
             else:
                 # Fail
