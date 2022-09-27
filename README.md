@@ -12,7 +12,7 @@
 - (Ab)Uses AD Replication to pull all NTLM hashes from the Domain Controller (Requires Admin credentials for Domain Controller)
 - Compares user hashes against HaveIBeenPwned's compromised hash file
 - The script checks system memory and aims for 70-80% usage so that a single machine doesn't crash
-- Option to save API key and Email address credentials to file instead of entering them manually each time
+- Option to save API key, Email address credentials, and Domain Admin credentials to file using Windows DPAPI
 
 ## Dependencies 
 [![Known Vulnerabilities](https://snyk.io/test/github/I506dk/ADACCT/badge.svg)](https://snyk.io/test/github/I506dk/ADACCT)
