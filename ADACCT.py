@@ -11,6 +11,7 @@ import time
 import shutil
 import ctypes
 import smtplib
+import binascii
 import subprocess
 import urllib.parse
 from os import path
@@ -29,7 +30,6 @@ while True:
     try:
         # Import packages here
         import psutil
-        import binascii
         import requests
         import win32crypt
         import pandas as pd
@@ -42,8 +42,6 @@ while True:
         
         # Install pypiwin32 to access windows api services
         if Missing_Library == "win32crypt":
-            install_library("pypiwin32")
-        elif Missing_Library == "binascii":
             install_library("pypiwin32")
         # Install the dataframe specific portion of dask
         elif Missing_Library == "dask":
