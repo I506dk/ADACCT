@@ -678,8 +678,8 @@ def check_ntlm_hashes():
                     else:
                         print("No save file found for credentials.")
                         # Get admin DC credentials from user
-                        DC_Username = input("Please enter the administrator username for the domain controller: ")
-                        DC_Password = getpass("Please enter the administrator password for the domain controller (Characters will not be printed): ")
+                        DC_Username = input("Please enter a domain admin username for the domain controller: ")
+                        DC_Password = getpass("Please enter a domain admin password for the domain controller (Characters will not be printed): ")
                         
                         # Save if warranted
                         while True:
