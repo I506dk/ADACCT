@@ -5,6 +5,7 @@
 #### A Python script to check Active Directory User emails and NTLM password hashes for compromise against HaveIBeenPwned's database
 #### Prounounced /ˈadikt/ - an enthusiastic devotee of a specified thing or activity.
 
+[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 ![CodeQL](https://github.com/I506dk/ADACCT/workflows/CodeQL/badge.svg)
 ![Known Vulnerabilities](https://snyk.io/test/github/I506dk/ADACCT/badge.svg)
 
