@@ -16,10 +16,12 @@
 
 ## Dependencies 
 [![Known Vulnerabilities](https://snyk.io/test/github/I506dk/ADACCT/badge.svg)](https://snyk.io/test/github/I506dk/ADACCT)
-- [Psutil](https://pypi.org/project/psutil/) - Cross-platform library for process and system monitoring
-- [Requests](https://pypi.org/project/requests/) - HTTP Library
-- [Pandas](https://pypi.org/project/pandas/) - A Powerful data analysis toolkit
-- [py7zr](https://pypi.org/project/py7zr/) - 7zip library for python
+- [Psutil](https://pypi.org/project/psutil/) - Cross-platform lib for process and system monitoring in Python
+- [Requests](https://pypi.org/project/requests/) - Python HTTP for Humans
+- [PypiWin32](https://pypi.org/project/pywin32/) - Python for Window Extensions
+- [Pandas](https://pypi.org/project/pandas/) - Powerful data structures for data analysis, time series, and statistics
+- [Dask](https://pypi.org/project/dask/) - Parallel PyData with Task Scheduling
+- [Py7zr](https://pypi.org/project/py7zr/) - 7zip library for python
 
 ## Notes
 - [Api Key](https://haveibeenpwned.com/API/Key) - HaveIBeenPwned uses a paid API key, needed for using their API
@@ -62,8 +64,10 @@ pip install -r requirements.txt
 **Or individually installed via Pip:**
 ```
 pip install psutil
-pip install pandas
 pip install requests
+pip install pypiwin32
+pip install pandas
+pip install dask[dataframe]
 pip install py7zr
 ```
 
@@ -106,9 +110,9 @@ REMINDER - You can use multiple arguments as long as they aren't -h or --help (T
 - [x] Check hashes against HIBP
 - [x] Allow for emailing of results
 - [x] Download HIBP Hash file
-- [ ] Find a way to protect saved API key and Email credentials (Currently saved as plain text)
+- [x] Find a way to protect saved API key and Email credentials (Everything is saved using windows dpapi)
 - [ ] Add option to specify location of Hash File (Defaults to the same directory the script is in)
-- [ ] Add better protection of python processes running in memory (Don't want hash leaks)
+- [ ] Implement a Trusted Execution Environment to prevent memory dumping attacks
 - [ ] Add support for new Active Directory Checks
 
 
