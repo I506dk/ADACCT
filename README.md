@@ -22,6 +22,7 @@
 ## Dependencies 
 - [Psutil](https://pypi.org/project/psutil/) - Cross-platform lib for process and system monitoring in Python
 - [Requests](https://pypi.org/project/requests/) - Python HTTP for Humans
+- [BeautifulSoup4](https://pypi.org/project/beautifulsoup4/) - Screen-scraping library
 - [PypiWin32](https://pypi.org/project/pywin32/) - Python for Window Extensions
 - [Pandas](https://pypi.org/project/pandas/) - Powerful data structures for data analysis, time series, and statistics
 - [Dask](https://pypi.org/project/dask/) - Parallel PyData with Task Scheduling
@@ -69,6 +70,7 @@ pip install -r requirements.txt
 ```
 pip install psutil
 pip install requests
+pip install beautifulsoup4
 pip install pypiwin32
 pip install pandas
 pip install dask[dataframe]
