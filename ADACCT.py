@@ -412,7 +412,7 @@ def check_email(email_list, api_key):
             Full_Url = Breached_Acount_Url + email_list[i]
            
             # Default time in between requests. (To try and not get rate limited.) (in seconds)
-            Default_Rate = 0.2
+            Default_Rate = 1.3
 
             # Get page and response
             Get_Page = requests.get(Full_Url, headers=Header)
@@ -435,29 +435,29 @@ def check_email(email_list, api_key):
                
             # Bad request - possible incorrect format
             elif Response_Status == 400:
-                print("Bad request. Potentially empty string or incorect formatting.")
+                print("Bad request. Potentially empty string or incorect formatting.\n")
             # Unauthorized - Invalid api key
             elif Response_Status == 401:
-                print("Invalid or Expired api key.")
+                print("Invalid or Expired api key.\n")
                 quit()
             # Forbidden - No user agent specified
             elif Response_Status == 403:
-                print("No user agent specified.")
+                print("No user agent specified.\n")
             # Not found - Account could not be found (Clean. This is ideal)
             elif Response_Status == 404:
                 # If nothing is found, a 404 is returned.
                 Results.append([str(email_list[i]), 'Clean'])
             # Too many requests - Implement rate limiting
             elif Response_Status == 429:
-                print("Time in betwen requests being increased due to rate limiting.")
+                print("Time in betwen requests being increased due to rate limiting.\n")
                 Default_Rate += 0.2
                 i -= 1
             # Service Unavailable - Possibly being blocked by cloudflare, or the site is down
             elif Response_Status == 503:
-                print("Service Unavailable. Make sure requests aren't geting blocked by firewall.")
+                print("Service Unavailable. Make sure requests aren't geting blocked by firewall.\n")
             # Unknown
             else:
-                print("Unknown response code: " + str(Response_Status))
+                print("Unknown response code: " + str(Response_Status) + "\n")
            
             # Sleep in between requests
             time.sleep(Default_Rate)
@@ -863,6 +863,9 @@ def check_ntlm_hashes():
 
                 # Reset index in dataframe
                 User_Frame.reset_index(drop=True, inplace=True)
+                
+                # Print progress
+                print_progress(j+1, total_partitions)
             
                 j += 1
             
