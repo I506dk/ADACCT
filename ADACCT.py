@@ -26,6 +26,7 @@ def install_library(package):
 while True:
     try:
         # Import packages here
+        import bs4
         import psutil
         import binascii
         import requests
@@ -172,7 +173,7 @@ def run_as_admin(argv=None, debug=False):
 def print_progress(iteration, total, width=50):
     percent = ("{0:." + str(1) + "f}").format(100 * (iteration / float(total)))
     filled_width = int(width * iteration // total)
-    bar = '#' * filled_width + '-' * (width - filled_width)
+    bar = '█' * filled_width + '-' * (width - filled_width)
     print(f'\rProgress: |{bar}| {percent}% Complete', end = '\r')
 
 
@@ -574,23 +575,26 @@ def download_and_unzip():
     Download_Start = time.time()
 
     # Url to HIBP hash file (v7)
-    #HIBP_Hashes = "https://downloads.pwnedpasswords.com/passwords/pwned-passwords-ntlm-ordered-by-hash-v7.7z"
+    # "https://downloads.pwnedpasswords.com/passwords/pwned-passwords-ntlm-ordered-by-hash-v7.7z"
     # Url to HIBP hash file (v8)
-    HIBP_Hashes = "https://downloads.pwnedpasswords.com/passwords/pwned-passwords-ntlm-ordered-by-hash-v8.7z"
-    
-    '''
-    import bs4
+    # "https://downloads.pwnedpasswords.com/passwords/pwned-passwords-ntlm-ordered-by-hash-v8.7z"
 
+    # Get page with requests
     Get_Page = requests.get("https://haveibeenpwned.com/Passwords")
-
+    # Parse html with beautiful soup
     Page_Repsonse = Get_Page.text
     soup = bs4.BeautifulSoup(Page_Repsonse, 'html.parser')
 
-    # Look through all html for download links
+    # Look through all html for download links and extract zip link
     for link in soup.find_all("a"):
         if ("pwned-passwords-ntlm-ordered-by-hash" in str(link)) and ("torrent" not in str(link)):
             HIBP_Latest = link['href']
-    '''
+
+    # If not link was found, use hardcoded link
+    if "HIBP_Latest" not in locals():
+        HIBP_Hashes = "https://downloads.pwnedpasswords.com/passwords/pwned-passwords-ntlm-ordered-by-hash-v7.7z"
+    else:
+        HIBP_Hashes = str(HIBP_Latest)
 
     # Get current directory
     Current_Directory = os.getcwd() + '\\'
