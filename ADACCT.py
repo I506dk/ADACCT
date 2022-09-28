@@ -573,8 +573,24 @@ def download_and_unzip():
     # Get stating time before downloading
     Download_Start = time.time()
 
-    # Url to HIBP hash file
-    HIBP_Hashes = "https://downloads.pwnedpasswords.com/passwords/pwned-passwords-ntlm-ordered-by-hash-v7.7z"
+    # Url to HIBP hash file (v7)
+    #HIBP_Hashes = "https://downloads.pwnedpasswords.com/passwords/pwned-passwords-ntlm-ordered-by-hash-v7.7z"
+    # Url to HIBP hash file (v8)
+    HIBP_Hashes = "https://downloads.pwnedpasswords.com/passwords/pwned-passwords-ntlm-ordered-by-hash-v8.7z"
+    
+    '''
+    import bs4
+
+    Get_Page = requests.get("https://haveibeenpwned.com/Passwords")
+
+    Page_Repsonse = Get_Page.text
+    soup = bs4.BeautifulSoup(Page_Repsonse, 'html.parser')
+
+    # Look through all html for download links
+    for link in soup.find_all("a"):
+        if ("pwned-passwords-ntlm-ordered-by-hash" in str(link)) and ("torrent" not in str(link)):
+            HIBP_Latest = link['href']
+    '''
 
     # Get current directory
     Current_Directory = os.getcwd() + '\\'
