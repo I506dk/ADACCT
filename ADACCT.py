@@ -166,7 +166,15 @@ def run_as_admin(argv=None, debug=False):
         return False
         
     return None
-    
+
+
+# Function to print out progress
+def print_progress(iteration, total, width=50):
+    percent = ("{0:." + str(1) + "f}").format(100 * (iteration / float(total)))
+    filled_width = int(width * iteration // total)
+    bar = '#' * filled_width + '-' * (width - filled_width)
+    print(f'\rProgress: |{bar}| {percent}% Complete', end = '\r')
+
 
 # Function to export credentials to xml file and encrypt using windows dpapi
 # An exact adaptation of the powershell commandlet Export-Clixml
@@ -394,15 +402,17 @@ def check_email(email_list, api_key):
     # Save results to list
     Results = []
    
+    email_count = len(email_list)
+   
     # If there are emails addresses present, check them.
-    if len(email_list) > 0:
+    if email_count > 0:
         i = 0
-        while i < len(email_list):
+        while i < email_count:
             # Concatenate to create full search url
             Full_Url = Breached_Acount_Url + email_list[i]
            
             # Default time in between requests. (To try and not get rate limited.) (in seconds)
-            Default_Rate = 1.3
+            Default_Rate = 0.2
 
             # Get page and response
             Get_Page = requests.get(Full_Url, headers=Header)
@@ -435,8 +445,7 @@ def check_email(email_list, api_key):
                 print("No user agent specified.")
             # Not found - Account could not be found (Clean. This is ideal)
             elif Response_Status == 404:
-                # This is noisy in large environments
-                #print("No results for " + str(email_list[i]) + ". Email address doesn't appear to be compromised.")
+                # If nothing is found, a 404 is returned.
                 Results.append([str(email_list[i]), 'Clean'])
             # Too many requests - Implement rate limiting
             elif Response_Status == 429:
@@ -452,6 +461,9 @@ def check_email(email_list, api_key):
            
             # Sleep in between requests
             time.sleep(Default_Rate)
+            
+            # Print progress
+            print_progress(i+1, email_count)
            
             i += 1
    
@@ -578,10 +590,16 @@ def download_and_unzip():
     # Get file url and download in sections
     # Also filter out anything that isn't actual data (ie. keep alive requests)
     r = requests.get(HIBP_Hashes, stream=True)
+    # Get total content length and calculate progress
+    total_length = int(r.headers['content-length'])
+    current_chunk = 1024
+    # Download file
     with open(Full_Path, 'wb') as file:
         for chunk in r.iter_content(chunk_size=1024):
             if chunk:
+                print_progress(current_chunk, total_length)
                 file.write(chunk)
+                current_chunk += 1024
     # Close file
     file.close()
     
