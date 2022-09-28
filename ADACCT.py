@@ -439,7 +439,7 @@ def check_email(email_list, api_key):
             # Unauthorized - Invalid api key
             elif Response_Status == 401:
                 print("Invalid or Expired api key.")
-                break
+                quit()
             # Forbidden - No user agent specified
             elif Response_Status == 403:
                 print("No user agent specified.")
