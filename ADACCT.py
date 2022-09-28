@@ -519,33 +519,7 @@ def send_mail(to_address, message, *args):
         else:
             # Both sender fields have atleast something in them.
             print("Email credentials found hardcoded in system. Continuing...")
-            
-            '''
-            while True:
-                Continue = input("Continue using " + str(Sender_Address) + "? (y/n) ").lower()
-                if (Continue == 'y') or (Continue == "yes"):
-                    # Continue using credentials already found.
-                    break
-                elif (Continue == 'n') or (Continue == "no"):
-                    # Don't use hardcoded credentials. Ask for new ones.
-                    Sender_Address = input("Please enter an email address to send results from (Make sure Less Secure Apps are allowed): ")
-                    Sender_Password = getpass("Enter password for above email address previously entered (Characters will not be printed): ")
-                    Save_Credentials = input("Would you like to save these credentials for future use? (y/n) ")
-                    # Save if warranted
-                    Save_Credentials = input("Would you like to save these credentials for future use? (y/n) ").lower()
-                    if (Save_Credentials == 'y') or (Save_Credentials == "yes"):
-                        # Save credentials
-                        print("Saving to file...")
-                        export_credentials(str(Sender_Address), str(Sender_Password), Full_Path)
-                        break
-                    elif (Save_Credentials == 'n') or (Save_Credentials == "no"):
-                        print("Continuing...")
-                        break
-                    else:
-                        # Other character entered.
-                        print("Invalid response entered. Use y/Y for yes, and n/N for no.")
-            '''
-            #print("Continuing...")
+
     else:
         # Pull from file and continue (this assumes they exist)
         # Import credentials from file
@@ -751,6 +725,7 @@ def check_ntlm_hashes():
                     break
                 except subprocess.CalledProcessError as e:
                     print("Error. Possible invalid credentials used.")
+                    quit()
             
         except subprocess.CalledProcessError as e:
             if domain_name == "WORKGROUP":
