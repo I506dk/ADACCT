@@ -32,7 +32,7 @@
 - [Api Key](https://haveibeenpwned.com/API/Key) - HaveIBeenPwned uses a paid API key, needed for using their API
 - [Compromised Hash File](https://haveibeenpwned.com/Passwords) - Compromised hash file (Decompressed it is about 21 gigabytes) (Can be manually downloaded if needed)
 - If results are to be emailed, the script needs an email address and credentials to send from (If using Gmail, less secure apps needs to be enabled)
-- Api key, email addresses, and email credentials can be saved to text file, instead of manually typed each time
+- Api key, email addresses, and email credentials can be saved to xml file, instead of manually typed each time
 
 ## Installation
 **Download the recommended version of python below (3.9.7):**
@@ -90,8 +90,16 @@ These were the system requirements during testing, and the script can likely run
   - Dataframes will get split based on the amount of free memory.
 
 **Disk Space**
-- At least 30gb disk space
-  - The HaveIBeenPwned hash file takes up almost 22gb of disk space once unzipped
+- At least 35gb disk space
+  - The HaveIBeenPwned hash file takes up ~22gb of disk space once unzipped, and zipped file takes up ~8gb.
+
+## Account Permissions
+A domain admin account is easiest to use if running the script once or on an ad-hoc basis.
+If running the script automated or as a scheduled task, it is recommended to create a service account.
+Only three privileges are required for the script:
+- Domain User - Allows for reading user data (specifically usernames and email addresses)
+- Replicate Directory Changes - Allows for replicating data from a domain controller
+- Replicate Directory Changes All - Allows for replicating all data from a domain controller
 
 ## Usage
 To run ADACCT for the first time:
@@ -104,23 +112,23 @@ Arguments can be specified to the script if only specific portions of the script
 
 (***-h or --help***) - will display the help screen.
 
-Examples: ```python ADACCT.py -h``` or ```python ADACCT.py --help```
+- Examples: ```python ADACCT.py -h``` or ```python ADACCT.py --help```
 
 (***-d or --download***)  - will download and unzip the HIBP hash file.
 
-Examples: ```python ADACCT.py -d``` or ```python ADACCT.py --download```
+- Examples: ```python ADACCT.py -d``` or ```python ADACCT.py --download```
 
 (***-e or --email***) - will check email addresses found in the current active directory for compromise.
 
-Examples: ```python ADACCT.py -e``` or ```python ADACCT.py --email```
+- Examples: ```python ADACCT.py -e``` or ```python ADACCT.py --email```
 
 (***-n or --ntlm***) - will check NTLM hashes pulled from active directory against compromised hash list.
 
-Examples: ```python ADACCT.py -n``` or ```python ADACCT.py --ntlm```
+- Examples: ```python ADACCT.py -n``` or ```python ADACCT.py --ntlm```
 
 (***-A***) - will run the script completely automated, without user interaction (Only applies to email argument).
 
-Examples: ```python ADACCT.py -e -A``` or ```python ADACCT.py --email -A```
+- Examples: ```python ADACCT.py -e -A``` or ```python ADACCT.py --email -A```
 
 REMINDER - You can use multiple arguments as long as they aren't -h or --help (Those will default to showing the help screen then exiting)
 
@@ -135,8 +143,9 @@ REMINDER - You can use multiple arguments as long as they aren't -h or --help (T
 - [x] Find a way to protect saved API key and Email credentials (Everything is saved using windows dpapi)
 - [ ] Add option to specify location of Hash File (Defaults to the same directory the script is in)
 - [ ] Implement a Trusted Execution Environment to prevent memory dumping attacks
-- [ ] Determine minimum privileges required for domain object data replication
+- [x] Determine minimum privileges required for domain object data replication
 - [ ] Implement a pip cleanup to remove packages or libraries installed by the script
+- [ ] Add support for running script in cloud environments (Specifically Azure)
 - [ ] Add support for new Active Directory Checks
 
 
