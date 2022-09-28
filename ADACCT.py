@@ -435,7 +435,8 @@ def check_email(email_list, api_key):
                 print("No user agent specified.")
             # Not found - Account could not be found (Clean. This is ideal)
             elif Response_Status == 404:
-                print("No results for " + str(email_list[i]) + ". Email address doesn't appear to be compromised.")
+                # This is noisy in large environments
+                #print("No results for " + str(email_list[i]) + ". Email address doesn't appear to be compromised.")
                 Results.append([str(email_list[i]), 'Clean'])
             # Too many requests - Implement rate limiting
             elif Response_Status == 429:
