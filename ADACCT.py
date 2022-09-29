@@ -47,6 +47,9 @@ while True:
         # Install the dataframe specific portion of dask
         elif Missing_Library == "dask":
             install_library("dask[dataframe]")
+        # Install beautiful soup. bs4 does work, but it is a dummy reference to beautiful soup
+        elif Missing_Library == "bs4":
+            install_library("beautifulsoup4")
         else:
             install_library(Missing_Library)
 
@@ -376,7 +379,7 @@ def get_emails(*args):
             current_email = current_email.replace('\r', '')
             email_list.append(current_email)
 
-    print(str(len(email_list)) + " email addresses found in current active directory.")
+    print(str(len(email_list)) + " email addresses found in current domain.")
    
     return email_list
  
@@ -385,7 +388,7 @@ def get_emails(*args):
 def check_email(email_list, api_key):
     # Url for getting all breaches for an account (takes an account) (This is the main one to use)
     Breached_Acount_Url = "https://haveibeenpwned.com/api/v3/breachedaccount/"
-    # Url for getting alll breached sites in a system (takes a domain)
+    # Url for getting all breached sites in a system (takes a domain)
     #All_Sites_Url = "https://haveibeenpwned.com/api/v3/breaches/"
     # Url for getting a single breached site (takes a site)
     #Single_Site_Url = "https://haveibeenpwned.com/api/v3/breach/"
@@ -416,9 +419,16 @@ def check_email(email_list, api_key):
             Default_Rate = 1.3
 
             # Get page and response
-            Get_Page = requests.get(Full_Url, headers=Header)
-            # Check response code
-            Response_Status = Get_Page.status_code
+            try:
+                Get_Page = requests.get(Full_Url, headers=Header)
+                # Check response code
+                Response_Status = Get_Page.status_code
+            # If there is a timeout error, sleep, and set response code to 1
+            except (TimeoutError, ConnectTimeoutError):
+                print("Timeout error. Waiting...")
+                time.sleep(1)
+                Response_Status = 1
+                i -= 1
            
             # Good response
             if Response_Status == 200:
