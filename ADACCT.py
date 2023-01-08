@@ -744,11 +744,9 @@ def check_ntlm_hashes():
                     User_Policy = User_Policy.replace('\n', '')
                     
                     # Allow scripting for the current process
-                    #powershell_set_exec = 
                     subprocess.check_output(["powershell.exe", "Set-ExecutionPolicy Bypass -Scope CurrentUser -Force"])
                     
                     # Import DSInternals module
-                    #powershell_ds = 
                     subprocess.check_output(["powershell.exe", "Import-Module DSInternals"])
                         
                     # Get all NTLM hashes
@@ -903,7 +901,6 @@ def check_ntlm_hashes():
             print("All user passwords have been compromised. Exiting...")
                 
         # Set execution policy back to what it was
-        #Policy_Revert = 
         subprocess.check_output(["powershell.exe", "Set-ExecutionPolicy '" + str(User_Policy) + "' -Scope CurrentUser -Force"])
 
         # Get time elapsed
