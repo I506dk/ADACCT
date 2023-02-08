@@ -178,6 +178,8 @@ def print_progress(iteration, total, width=50):
     filled_width = int(width * iteration // total)
     bar = '█' * filled_width + '-' * (width - filled_width)
     print(f'\rProgress: |{bar}| {percent}% Complete', end = '\r')
+    if iteration == total:
+        print('\r')
 
 
 # Function to export credentials to xml file and encrypt using windows dpapi
