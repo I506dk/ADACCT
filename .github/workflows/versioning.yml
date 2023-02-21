@@ -1,0 +1,50 @@
+name: version
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+env:
+  REPO: i506dk/ADACCT
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          # Fetch all commits
+          fetch-depth: 0
+          
+      # Create semantic version
+      - name: Semantic Versioning
+        id: versioning
+        uses: PaulHatch/semantic-version@v4.0.2
+        with:
+          branch: main
+          major_pattern: "BREAKING CHANGE:"
+          minor_pattern: "feat:"
+          format: "v${major}.${minor}.${patch}"
+      
+      #- name: Check output
+      #  run: echo ${{ steps.versioning.outputs.version_tag }}
+          
+      # Create new release  
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        with:
+          tag_name: ${{ steps.versioning.outputs.version_tag }}
+          release_name: ${{ steps.versioning.outputs.version_tag }}
+          #body: |
+          #  Changes in this Release
+          #  - First Change
+          #  - Second Change
+      #    draft: false
+      #    prerelease: false
+          
